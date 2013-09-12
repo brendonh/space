@@ -15,7 +15,7 @@ func RenderCubeMaterial(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) 
 
 	program.Use()
 
-    verts.Bind(gl.ARRAY_BUFFER)	
+    verts.Bind(gl.ARRAY_BUFFER)
 
     aVertexPosition := program.GetAttribLocation("aVertexPosition")
     aVertexPosition.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(0))

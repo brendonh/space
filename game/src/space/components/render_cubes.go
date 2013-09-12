@@ -1,31 +1,34 @@
-package space
+package components
 
 import (
 	"math"
 
+	. "space"
 	"space/render"
 
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
 
-
-type Cubes struct {
+type CubesComponent struct {
 	verts gl.Buffer
 	count int
 }
 
-func NewCubes() *Cubes {
-	return &Cubes {
+func NewCubesComponent() *CubesComponent {
+	return &CubesComponent {
 		verts: makeCubeBuffer(),
 		count: 36,
 	}
 }
 
-func (c *Cubes) Render(mP, mV *Mat4, vLight Vec3) {
+func (c *CubesComponent) Render(context *RenderContext) {
 	// XXX TODO: Mix M into mV
-	render.RenderCubeMaterial(mP, mV, vLight, c.verts, c.count)
+	render.RenderCubeMaterial(
+		&context.MPerspective, &context.MView, context.VLightDir,
+		c.verts, c.count)
 }
+
 
 
 func makeCubeBuffer() gl.Buffer {

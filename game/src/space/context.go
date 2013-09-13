@@ -25,7 +25,7 @@ type RenderContext struct {
 func NewRenderContext() *RenderContext {
 	context := &RenderContext {
 		VLightDir: Vec3 { 0.0, 0.0, -1.0 },
-		VCamTranslate: Vec3 { 0.0, 0.0, 6.0 },
+		VCamTranslate: Vec3 { 0.0, -2.0, 6.0 },
 	}
 
 	QIdent(&context.QCamRotate)
@@ -62,16 +62,17 @@ func (context *RenderContext) Resize(width, height int) {
 
 func (context *RenderContext) StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	context.TickCamera()
+	context.SetCamera()
 }
 
-func (context *RenderContext) TickCamera() {
-	var phys = context.FollowPhysics
-	var vCamTranslate = Vec3 { 
-		float32(phys.PosX), float32(phys.PosY), context.VCamTranslate[2] }
+func (context *RenderContext) SetCamera() {
+	phys := context.FollowPhysics
 
-	var mCamTransform Mat4
-	M4MakeTransform(&mCamTransform, &vCamTranslate)
+	var center, eye, up Vec3
 
-	M4Inverse(&context.MView, &mCamTransform)
+	center = Vec3 { float32(phys.PosX), float32(phys.PosY), 0.0 }
+	V3Add(&eye, center, context.VCamTranslate)
+	up = Vec3 { 0.0, 1.0, 1.0 }
+
+	M4LookAt(&context.MView, eye, center, up)
 }

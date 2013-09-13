@@ -20,7 +20,7 @@ func NewSector() *Sector {
 		render: NewRenderSystem(),
 		Input: NewInputSystem(),
 	}
-	sector.RegisterComponent(NewStarfield())
+	sector.RegisterComponent(NewDustfield())
 	return sector
 }
 

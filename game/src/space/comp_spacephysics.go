@@ -13,6 +13,8 @@ type SpaceForce struct {
 }
 
 type SpacePhysics struct {
+	Entity *Entity
+
 	PosX float64
 	PosY float64
 
@@ -32,7 +34,7 @@ func (c *SpacePhysics) Tag() string {
 }
 
 func (c *SpacePhysics) SetEntity (e *Entity) {
-	// TODO
+	c.Entity = e
 }
 
 func (c *SpacePhysics) TickPhysics() {
@@ -44,8 +46,6 @@ func (c *SpacePhysics) TickPhysics() {
 
 	c.PosX += c.VelX
 	c.PosY += c.VelY
-
-
 }
 
 func (c *SpacePhysics) ApplyForce(Angle float64, Acc float64) {
@@ -55,7 +55,7 @@ func (c *SpacePhysics) ApplyForce(Angle float64, Acc float64) {
 // TODO: Make relative to reference point
 func (c *SpacePhysics) GetModelMatrix() *Mat4 {
 	var result Mat4
-	M4MakeRotation(&result, float32(c.Angle), &Vec3 { 0.0, 0.0, 1.0 })
-	M4SetTransform(&result, &Vec3 { float32(c.PosX), float32(c.PosY), 0.0 })
+	M4MakeRotation(&result, float32(c.Angle), Vec3 { 0.0, 0.0, 1.0 })
+	M4SetTransform(&result, Vec3 { float32(c.PosX), float32(c.PosY), 0.0 })
 	return &result
 }

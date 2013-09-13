@@ -43,13 +43,10 @@ func (c *CubesComponent) Render(context *RenderContext) {
 	var mPhysics Mat4
 	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(), &c.mModel)
 	M4MulM4(&mPhysics, &context.MView, &mPhysics)
-	// var mMV Mat4
-	// M4MulM4(&mMV, &context.MView, &c.mModel)
 	render.RenderCubeMaterial(
 		&context.MPerspective, &mPhysics, context.VLightDir,
 		c.verts, c.count)
 }
-
 
 
 func makeCubeBuffer() gl.Buffer {
@@ -77,8 +74,8 @@ func makeCubeBuffer() gl.Buffer {
         
 		for _, v := range vertVecs {
 			var temp Mat3
-			QMat3(&temp, &rot)
-			M3MulV3(&v, &temp, &v)
+			QMat3(&temp, rot)
+			M3MulV3(&v, &temp, v)
 		
             // Vert
             buf[bufOffset]     = round(v[0])
@@ -109,23 +106,23 @@ func makeCubeBuffer() gl.Buffer {
     addFace(q, Vec3 {0.0, 0.0, -1.0}, Vec3 {1.0, 0.0, 0.0})
 
     // Right
-	QRotAng(&q, math.Pi / 2, &yAxis)
+	QRotAng(&q, math.Pi / 2, yAxis)
     addFace(q, Vec3 {1.0, 0.0, 0.0}, Vec3 {1.0, 1.0, 0.0})
 
     // Back
-	QRotAng(&q, math.Pi, &yAxis)
+	QRotAng(&q, math.Pi, yAxis)
     addFace(q, Vec3 {0.0, 0.0, 1.0}, Vec3 {0.0, 1.0, 0.0})
 
     // Left
-	QRotAng(&q, -math.Pi/2, &yAxis)
+	QRotAng(&q, -math.Pi/2, yAxis)
     addFace(q, Vec3 {-1.0, 0.0, 0.0}, Vec3 {0.0, 1.0, 1.0})
 
     // Top
-	QRotAng(&q, math.Pi / 2, &xAxis)
+	QRotAng(&q, math.Pi / 2, xAxis)
     addFace(q, Vec3 {0.0, -1.0, 0.0}, Vec3 {0.0, 0.0, 1.0})
 
     // Bottom
-	QRotAng(&q, -math.Pi / 2, &xAxis)
+	QRotAng(&q, -math.Pi / 2, xAxis)
     addFace(q, Vec3 {0.0, 1.0, 0.0}, Vec3 {1.0, 0.0, 1.0});
 
     glBuf := gl.GenBuffer()

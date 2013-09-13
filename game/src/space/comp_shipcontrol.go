@@ -44,7 +44,5 @@ func (c *ShipControl) TickLogic() {
 		}
 
 		physics.ApplyForce(dir, force)
-	}
-		
-		
+	}		
 }

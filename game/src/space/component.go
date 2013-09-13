@@ -21,3 +21,7 @@ type RenderComponent interface {
 	Render(*RenderContext)
 }
 
+type PhysicalComponent interface {
+	Component
+	Weight() float64
+}

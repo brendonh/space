@@ -2,28 +2,34 @@ package space
 
 import (
 	"math/rand"
+	"time"
 
 	"space/render"
 
-	. "github.com/brendonh/glvec"
+	//. "github.com/brendonh/glvec"
 )
 
-var STAR_COUNT = 100
+var DUST_COUNT = 100
 
 type Starfield struct {
 	material *render.StarfieldMaterial
-	stars []Vec3
+	stars []float32
 }
 
 
 func NewStarfield() *Starfield {
-	var stars = make([]Vec3, 0, STAR_COUNT)
-	for i := 0; i < STAR_COUNT; i++ {
-		stars = append(stars, Vec3 {
-			(rand.Float32() * 10)- 5,
-			(rand.Float32() * 6) - 3,
-			(rand.Float32() * -5) + 1,
-		})
+
+	// Temporary
+	rand.Seed(time.Now().Unix())
+
+	var stars = make([]float32, 0, DUST_COUNT * 4)
+	for i := 0; i < DUST_COUNT; i++ {
+		stars = append(stars,
+			(rand.Float32() * 10) - 5,
+			(rand.Float32() * 10) - 5,
+			(rand.Float32() * 10) - 8,
+			rand.Float32() + 1,
+		)
 	}
 	
 	return &Starfield {

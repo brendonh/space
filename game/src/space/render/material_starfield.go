@@ -2,36 +2,26 @@ package render
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
 
 type StarfieldMaterial struct {
-	quad gl.Buffer
+	starBuffer gl.Buffer
+	printed bool
 }
 
 func NewStarfieldMaterial() *StarfieldMaterial {
-	var quadVerts = []float32 {
- 		 1.0,  1.0, 0.0,
-		-1.0,  1.0, 0.0,
-		 1.0, -1.0, 0.0,
-		 1.0, -1.0, 0.0,
-		-1.0,  1.0, 0.0,
-		-1.0, -1.0, 0.0,
-	}
-
-    glBuf := gl.GenBuffer()
-    glBuf.Bind(gl.ARRAY_BUFFER)
-    gl.BufferData(gl.ARRAY_BUFFER, len(quadVerts) * 4, quadVerts, gl.STATIC_DRAW);
-
 	return &StarfieldMaterial {
-		quad: glBuf,
+		starBuffer: gl.GenBuffer(),
+		printed: false,
 	}
 }
 
 
-func (sm *StarfieldMaterial) Render(mP, mV *Mat4, stars []Vec3) {
+func (sm *StarfieldMaterial) Render(mP, mV *Mat4, stars []float32) {
 
 	program, err := ShaderCache.GetShader("starfield", "starfield.vert", "starfield.frag")
 	if err != nil {
@@ -40,30 +30,56 @@ func (sm *StarfieldMaterial) Render(mP, mV *Mat4, stars []Vec3) {
 
 	program.Use()
 
-    sm.quad.Bind(gl.ARRAY_BUFFER)
+    sm.starBuffer.Bind(gl.ARRAY_BUFFER)
 
-    aVertexPosition := program.GetAttribLocation("aVertexPosition")
-    aVertexPosition.AttribPointer(3, gl.FLOAT, false, 0, uintptr(0))
+	var proj, invProj Mat4
+	M4MulM4(&proj, mP, mV)
+	M4Inverse(&invProj, &proj)
+
+	for i := 0; i < len(stars); i += 4 {
+		var starPos = Vec4 { stars[i], stars[i+1], stars[i+2], 1.0 }
+		var clipPos Vec4
+		
+		M4MulV4(&clipPos, &proj, starPos)
+		var w = clipPos[3]
+		V4ScalarDiv(&clipPos, &clipPos, w)
+		
+		if clipPos[0] < -1.1 {
+			clipPos[0] = 1.0 + (rand.Float32() * 0.1)
+			clipPos[1] = (rand.Float32() * 2.2) - 1.1
+		} else if clipPos[0] > 1.1 {
+			clipPos[0] = -(1.0 + (rand.Float32() * 0.1))
+			clipPos[1] = (rand.Float32() * 2.2) - 1.1
+		} else if clipPos[1] < -1.1 {
+			clipPos[1] = 1.0 + (rand.Float32() * 0.1)
+			clipPos[0] = (rand.Float32() * 2.2) - 1.1
+		} else if clipPos[1] > 1.1 {
+			clipPos[1] = -(1.0 + (rand.Float32() * 0.1))
+			clipPos[0] = (rand.Float32() * 2.2) - 1.1
+		} else {
+			continue
+		}
+
+		M4MulV4(&starPos, &invProj, clipPos)
+		V4ScalarMul(&starPos, &starPos, w)
+		stars[i] = starPos[0]
+		stars[i+1] = starPos[1]
+	}
+
+    gl.BufferData(gl.ARRAY_BUFFER, len(stars) * 4, stars, gl.DYNAMIC_DRAW);
+
+    aVertexPosition := program.GetAttribLocation("aStarPosition")
+    aVertexPosition.AttribPointer(4, gl.FLOAT, false, 0, uintptr(0))
 	aVertexPosition.EnableArray()
 	defer aVertexPosition.DisableArray()
 
     pUniform := program.GetUniformLocation("uPMatrix")
     pUniform.UniformMatrix4fv(false, *mP)
 
-    mvUniform := program.GetUniformLocation("uMVMatrix")
+    uView := program.GetUniformLocation("uVMatrix")
+	uView.UniformMatrix4fv(false, *mV)
 
-	var mM, mTranslate, mMV Mat4	
-
-	for _, starPos := range stars {
-		M4MakeScale(&mM, 0.01)
-		M4MakeTransform(&mTranslate, &starPos)
-
-		M4MulM4(&mM, &mTranslate, &mM)
-		M4MulM4(&mMV, mV, &mM)
-
-		mvUniform.UniformMatrix4fv(false, mMV)
-		gl.DrawArrays(gl.TRIANGLES, 0, 6)
-	}
+	gl.DrawArrays(gl.POINTS, 0, len(stars) / 4)
 }
 
 

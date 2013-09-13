@@ -12,6 +12,7 @@ import (
 
 type RenderContext struct {
 	QCamRotate Quat
+	VCamTranslate Vec3
 
 	MPerspective Mat4
 	MView Mat4
@@ -22,6 +23,7 @@ type RenderContext struct {
 func NewRenderContext() *RenderContext {
 	context := &RenderContext {
 		VLightDir: Vec3 { 0.0, 0.0, -1.0 },
+		VCamTranslate: Vec3 { 0.0, 0.0, 6.0 },
 	}
 
 	QIdent(&context.QCamRotate)
@@ -34,13 +36,15 @@ func (context *RenderContext) Init() {
 
 	gl.Init()
 
-    gl.ClearColor(0.0, 0.0, 0.0, 1.0);
-    gl.ClearDepth(1.0);
-    gl.Enable(gl.DEPTH_TEST);
-    gl.DepthFunc(gl.LEQUAL);
+    gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+    gl.ClearDepth(1.0)
+    gl.Enable(gl.DEPTH_TEST)
+    gl.DepthFunc(gl.LEQUAL)
 
-    gl.Enable(gl.CULL_FACE);
-    gl.CullFace(gl.BACK);
+    gl.Enable(gl.CULL_FACE)
+    gl.CullFace(gl.BACK)
+
+	gl.Enable(gl.PROGRAM_POINT_SIZE)
 }
 
 func (context *RenderContext) Resize(width, height int) {
@@ -56,10 +60,14 @@ func (context *RenderContext) StartFrame() {
 }
 
 func (context *RenderContext) TickCamera() {
-	var mCamTransform Mat4
-	M4MakeTransform(&mCamTransform, &Vec3{ 0.0, 0.0, -6.0 })
 
-	M4Copy(&context.MView, &mCamTransform)
+	// context.VCamTranslate[0] += 0.02
+	// context.VCamTranslate[1] += 0.01
+
+	var mCamTransform Mat4
+	M4MakeTransform(&mCamTransform, &context.VCamTranslate)
+
+	M4Inverse(&context.MView, &mCamTransform)
 	// var q Quat
 	// QRotAng(&q, 0.01, &Vec3 { 1.0, 0.0, 0.0 })
 

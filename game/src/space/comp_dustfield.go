@@ -7,7 +7,7 @@ import (
 	"space/render"
 )
 
-var DUST_COUNT = 100
+var DUST_COUNT = 10
 
 type Dustfield struct {
 	Entity *Entity

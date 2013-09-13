@@ -7,8 +7,17 @@ varying vec4 vColor;
 
 void main(void) {
 
-  gl_Position = uPMatrix * uVMatrix * vec4(aStarPosition.xyz, 1.0);
+  vec4 basePosition = uPMatrix * uVMatrix * vec4(aStarPosition.xyz, 1.0);
+  
+  float w = basePosition.w;
+
+  vec4 ndcPos = basePosition / w;
+
+  float x = mod(ndcPos.x + 1.0, 2.0) - 1.0;
+  float y = mod(ndcPos.y + 1.0, 2.0) - 1.0;
+
+  gl_Position = vec4(x *w, y * w, basePosition.z, basePosition.w);
   gl_PointSize = aStarPosition.w;
 
-  vColor = vec4(1.0, 1.0, 1.0, 1.0);
+  vColor = vec4(1.0, 1.0, 0.99, 1.0);
 }

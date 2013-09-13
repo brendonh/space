@@ -25,7 +25,7 @@ type RenderContext struct {
 func NewRenderContext() *RenderContext {
 	context := &RenderContext {
 		VLightDir: Vec3 { 0.0, 0.0, -1.0 },
-		VCamTranslate: Vec3 { 0.0, -2.0, 6.0 },
+		VCamTranslate: Vec3 { 0.0, 0.0, 6.0 },
 	}
 
 	QIdent(&context.QCamRotate)

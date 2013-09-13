@@ -38,6 +38,16 @@ func NewStarfield() *Starfield {
 	}
 }
 
+func (s *Starfield) Init() {
+}
+
+func (s *Starfield) Tag() string {
+	return ""
+}
+
+func (s *Starfield) SetEntity(e *Entity) {
+}
+
 func (s *Starfield) Render(context *RenderContext) {
 	s.material.Render(&context.MPerspective, &context.MView, s.stars)
 }

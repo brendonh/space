@@ -55,9 +55,12 @@ func main() {
 func initSector(ml *space.Mainloop) {
 	ml.Sector = space.NewSector()
 	ship := ml.Entities.NewEntity()
-	ship.AddComponent(&space.SpacePhysicsComponent{})
+	ship.AddComponent(&space.SpacePhysics{})
 	ship.AddComponent(space.NewCubesComponent())
 	ship.AddComponent(&space.ShipControl{})
+	ship.AddComponent(&space.ShipInput{})
+	ship.InitComponents()
 	ml.Sector.AddEntity(ship)
+	ml.RenderContext.FollowEntity(ship)
 }
 

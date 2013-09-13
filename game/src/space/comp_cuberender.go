@@ -10,6 +10,9 @@ import (
 )
 
 type CubesComponent struct {
+	Entity *Entity
+	Physics *SpacePhysics
+
 	verts gl.Buffer
 	count int
 	mModel Mat4
@@ -24,11 +27,26 @@ func NewCubesComponent() *CubesComponent {
 	return comp
 }
 
+func (c *CubesComponent) Init() {
+	c.Physics = c.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
+}
+
+func (c *CubesComponent) Tag() string {
+	return ""
+}
+
+func (c *CubesComponent) SetEntity(e *Entity) {
+	c.Entity = e
+}
+
 func (c *CubesComponent) Render(context *RenderContext) {
-	var mMV Mat4
-	M4MulM4(&mMV, &context.MView, &c.mModel)
+	var mPhysics Mat4
+	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(), &c.mModel)
+	M4MulM4(&mPhysics, &context.MView, &mPhysics)
+	// var mMV Mat4
+	// M4MulM4(&mMV, &context.MView, &c.mModel)
 	render.RenderCubeMaterial(
-		&context.MPerspective, &mMV, context.VLightDir,
+		&context.MPerspective, &mPhysics, context.VLightDir,
 		c.verts, c.count)
 }
 

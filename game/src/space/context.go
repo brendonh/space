@@ -18,6 +18,8 @@ type RenderContext struct {
 	MView Mat4
 
 	VLightDir Vec3
+
+	FollowPhysics *SpacePhysics
 }
 
 func NewRenderContext() *RenderContext {
@@ -47,6 +49,10 @@ func (context *RenderContext) Init() {
 	gl.Enable(gl.PROGRAM_POINT_SIZE)
 }
 
+func (context *RenderContext) FollowEntity(e *Entity) {
+	context.FollowPhysics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
+}
+
 func (context *RenderContext) Resize(width, height int) {
 	M4Perspective(&context.MPerspective, math.Pi / 4, 
 		float32(width) / float32(height), 0.1, 100.0);
@@ -60,25 +66,12 @@ func (context *RenderContext) StartFrame() {
 }
 
 func (context *RenderContext) TickCamera() {
-
-	// context.VCamTranslate[0] += 0.02
-	// context.VCamTranslate[1] += 0.01
+	var phys = context.FollowPhysics
+	var vCamTranslate = Vec3 { 
+		float32(phys.PosX), float32(phys.PosY), context.VCamTranslate[2] }
 
 	var mCamTransform Mat4
-	M4MakeTransform(&mCamTransform, &context.VCamTranslate)
+	M4MakeTransform(&mCamTransform, &vCamTranslate)
 
 	M4Inverse(&context.MView, &mCamTransform)
-	// var q Quat
-	// QRotAng(&q, 0.01, &Vec3 { 1.0, 0.0, 0.0 })
-
-	// var camRotate = &context.QCamRotate
-
-	// QMul(camRotate, camRotate, &q)
-	// QRotAng(&q, 0.005, &Vec3 { 0.0, 1.0, 0.0 })
-	// QMul(camRotate, camRotate, &q)
-
-	// var mCamRot Mat4
-	// QMat4(&mCamRot, camRotate)
-
-	// M4MulM4(&context.MView, &mCamTransform, &mCamRot)
 }

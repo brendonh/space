@@ -45,16 +45,16 @@ func (sm *StarfieldMaterial) Render(mP, mV *Mat4, stars []float32) {
 		V4ScalarDiv(&clipPos, &clipPos, w)
 		
 		if clipPos[0] < -1.1 {
-			clipPos[0] = 1.0 + (rand.Float32() * 0.1)
+			clipPos[0] += 2.1 + (rand.Float32() * 0.1)
 			clipPos[1] = (rand.Float32() * 2.2) - 1.1
 		} else if clipPos[0] > 1.1 {
-			clipPos[0] = -(1.0 + (rand.Float32() * 0.1))
+			clipPos[0] -= (2.1 + (rand.Float32() * 0.1))
 			clipPos[1] = (rand.Float32() * 2.2) - 1.1
 		} else if clipPos[1] < -1.1 {
-			clipPos[1] = 1.0 + (rand.Float32() * 0.1)
+			clipPos[1] += 2.1 + (rand.Float32() * 0.1)
 			clipPos[0] = (rand.Float32() * 2.2) - 1.1
 		} else if clipPos[1] > 1.1 {
-			clipPos[1] = -(1.0 + (rand.Float32() * 0.1))
+			clipPos[1] -= (2.1 + (rand.Float32() * 0.1))
 			clipPos[0] = (rand.Float32() * 2.2) - 1.1
 		} else {
 			continue

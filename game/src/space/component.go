@@ -1,6 +1,9 @@
 package space
 
 type Component interface {
+	Tag() string
+	SetEntity(*Entity)
+	Init()
 }
 
 type PhysicsComponent interface {
@@ -17,3 +20,4 @@ type RenderComponent interface {
 	Component
 	Render(*RenderContext)
 }
+

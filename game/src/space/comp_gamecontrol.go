@@ -6,6 +6,16 @@ type GameControl struct {
 	Mainloop *Mainloop
 }
 
+func (c *GameControl) Init() {
+}
+
+func (c *GameControl) Tag() string {
+	return ""
+}
+
+func (c *GameControl) SetEntity(e *Entity) {
+}
+
 func (c *GameControl) Priority() int {
 	return 0
 }

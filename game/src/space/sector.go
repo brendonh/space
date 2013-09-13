@@ -54,8 +54,8 @@ func (s *Sector) RegisterComponent(c Component) {
 }
 
 func (s *Sector) Tick() {
-	s.physics.Tick()
 	s.logic.Tick()
+	s.physics.Tick()
 	s.updateEntities()
 }
 

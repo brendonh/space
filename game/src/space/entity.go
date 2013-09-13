@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -19,9 +20,24 @@ func NewEntity(id EntityID) *Entity {
 }
 
 func (e *Entity) AddComponent(c Component) {
+	c.SetEntity(e)
 	e.Components = append(e.Components, c)
 }
 
+func (e *Entity) GetComponent(tag string) Component {
+	for _, c := range e.Components {
+		if c.Tag() == tag {
+			return c
+		}
+	}
+	panic(fmt.Sprintf("No such component: %s", tag))
+}
+
+func (e *Entity) InitComponents() {
+	for _, c := range e.Components {
+		c.Init()
+	}
+}
 
 type EntityManager struct {
 	Entities map[EntityID]*Entity

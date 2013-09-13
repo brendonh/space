@@ -30,7 +30,7 @@ func (m *Mainloop) SetSector(sector *Sector) {
 }
 
 func (m *Mainloop) Loop() {
-	var ticksPerSecond int64 = 120
+	var ticksPerSecond int64 = 60
 	nanosPerTick := int64(time.Second / time.Nanosecond) / ticksPerSecond
 	fmt.Println("Nanos per tick:", nanosPerTick)
 

@@ -5,7 +5,6 @@ import (
 	"runtime"
 
 	"space"
-	"space/components"
 
 	glfw "github.com/go-gl/glfw3"
 
@@ -54,9 +53,11 @@ func main() {
 
 
 func initSector(ml *space.Mainloop) {
+	ml.Sector = space.NewSector()
 	ship := ml.Entities.NewEntity()
-	ship.AddComponent(&components.SpacePhysicsComponent{})
-	ship.AddComponent(components.NewCubesComponent())
+	ship.AddComponent(&space.SpacePhysicsComponent{})
+	ship.AddComponent(space.NewCubesComponent())
+	ship.AddComponent(&space.ShipControl{})
 	ml.Sector.AddEntity(ship)
 }
 

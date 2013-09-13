@@ -15,6 +15,7 @@ type RenderContext struct {
 
 	MPerspective Mat4
 	MView Mat4
+
 	VLightDir Vec3
 }
 
@@ -24,7 +25,6 @@ func NewRenderContext() *RenderContext {
 	}
 
 	QIdent(&context.QCamRotate)
-	M4Perspective(&context.MPerspective, math.Pi / 4, 800.0 / 600.0, 0.1, 100.0);
 
 	return context
 }
@@ -43,6 +43,13 @@ func (context *RenderContext) Init() {
     gl.CullFace(gl.BACK);
 }
 
+func (context *RenderContext) Resize(width, height int) {
+	M4Perspective(&context.MPerspective, math.Pi / 4, 
+		float32(width) / float32(height), 0.1, 100.0);
+
+	gl.Viewport(0, 0, width, height)
+}
+
 func (context *RenderContext) StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	context.TickCamera()
@@ -51,18 +58,19 @@ func (context *RenderContext) StartFrame() {
 func (context *RenderContext) TickCamera() {
 	var mCamTransform Mat4
 	M4MakeTransform(&mCamTransform, &Vec3{ 0.0, 0.0, -6.0 })
-	
-	var q Quat
-	QRotAng(&q, 0.01, &Vec3 { 1.0, 0.0, 0.0 })
 
-	var camRotate = &context.QCamRotate
+	M4Copy(&context.MView, &mCamTransform)
+	// var q Quat
+	// QRotAng(&q, 0.01, &Vec3 { 1.0, 0.0, 0.0 })
 
-	QMul(camRotate, camRotate, &q)
-	QRotAng(&q, 0.005, &Vec3 { 0.0, 1.0, 0.0 })
-	QMul(camRotate, camRotate, &q)
+	// var camRotate = &context.QCamRotate
 
-	var mCamRot Mat4
-	QMat4(&mCamRot, camRotate)
+	// QMul(camRotate, camRotate, &q)
+	// QRotAng(&q, 0.005, &Vec3 { 0.0, 1.0, 0.0 })
+	// QMul(camRotate, camRotate, &q)
 
-	M4MulM4(&context.MView, &mCamTransform, &mCamRot)
+	// var mCamRot Mat4
+	// QMat4(&mCamRot, camRotate)
+
+	// M4MulM4(&context.MView, &mCamTransform, &mCamRot)
 }

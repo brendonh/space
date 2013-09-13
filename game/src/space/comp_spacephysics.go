@@ -1,6 +1,6 @@
-package components
+package space
 
-import "fmt"
+//import "fmt"
 
 type SpacePhysicsComponent struct {
 	PosX float64
@@ -14,5 +14,5 @@ type SpacePhysicsComponent struct {
 }
 
 func (c *SpacePhysicsComponent) TickPhysics() {
-	fmt.Println("Ticking physics")
+	//fmt.Println("Ticking physics")
 }

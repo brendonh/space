@@ -9,15 +9,19 @@ type Sector struct {
 	physics *PhysicsSystem
 	logic *LogicSystem
 	render *RenderSystem
+	Input *InputSystem
 }
 
 func NewSector() *Sector {
-	return &Sector {
+	sector := &Sector {
 		Entities: make(map[EntityID]*Entity),
 		physics: NewPhysicsSystem(),
 		logic: NewLogicSystem(),
 		render: NewRenderSystem(),
+		Input: NewInputSystem(),
 	}
+	sector.RegisterComponent(NewStarfield())
+	return sector
 }
 
 func (s *Sector) AddEntity(e *Entity) {
@@ -33,20 +37,20 @@ func (s *Sector) AddEntity(e *Entity) {
 
 func (s *Sector) RegisterComponent(c Component) {
 	if c, ok := c.(PhysicsComponent); ok {
-		fmt.Println("Found physics component:", c)		
 		s.physics.Add(c)
 	}
 
 	if c, ok := c.(LogicComponent); ok {
-		fmt.Println("Found logic component:", c)		
 		s.logic.Add(c)
 	}
 
 	if c, ok := c.(RenderComponent); ok {
-		fmt.Println("Found render component:", c)		
 		s.render.Add(c)
 	}
 
+	if c, ok := c.(InputComponent); ok {
+		s.Input.Add(c)
+	}
 }
 
 func (s *Sector) Tick() {

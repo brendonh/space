@@ -46,7 +46,7 @@ func RenderCubeMaterial(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) 
     uLightDirection := program.GetUniformLocation("uLightDirection")
     uLightDirection.Uniform3f(vLight[0],vLight[1],vLight[2])
 
-    gl.DrawArrays(gl.TRIANGLES, 0, count);
+    gl.DrawArrays(gl.TRIANGLES, 0, count*3)
 }
 
 

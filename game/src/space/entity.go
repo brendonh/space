@@ -23,8 +23,6 @@ func (e *Entity) AddComponent(c Component) {
 }
 
 
-
-
 type EntityManager struct {
 	Entities map[EntityID]*Entity
 	lastID EntityID

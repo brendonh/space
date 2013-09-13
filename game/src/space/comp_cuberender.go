@@ -1,9 +1,8 @@
-package components
+package space
 
 import (
 	"math"
 
-	. "space"
 	"space/render"
 
 	"github.com/go-gl/gl"
@@ -13,19 +12,23 @@ import (
 type CubesComponent struct {
 	verts gl.Buffer
 	count int
+	mModel Mat4
 }
 
 func NewCubesComponent() *CubesComponent {
-	return &CubesComponent {
+	comp := &CubesComponent {
 		verts: makeCubeBuffer(),
-		count: 36,
+		count: 12,
 	}
+	M4MakeScale(&comp.mModel, 0.2)
+	return comp
 }
 
 func (c *CubesComponent) Render(context *RenderContext) {
-	// XXX TODO: Mix M into mV
+	var mMV Mat4
+	M4MulM4(&mMV, &context.MView, &c.mModel)
 	render.RenderCubeMaterial(
-		&context.MPerspective, &context.MView, context.VLightDir,
+		&context.MPerspective, &mMV, context.VLightDir,
 		c.verts, c.count)
 }
 

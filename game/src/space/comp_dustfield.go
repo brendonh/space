@@ -35,7 +35,6 @@ func (s *Dustfield) SetEntity(e *Entity) {
 }
 
 func (s *Dustfield) Render(context *RenderContext) {
-	var phys = context.FollowPhysics
 	s.material.Render(
-		&context.MPerspective, &context.MView, phys.PosX, phys.PosY)
+		&context.MPerspective, &context.MView, context.VCamPos)
 }

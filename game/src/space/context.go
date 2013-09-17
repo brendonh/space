@@ -12,6 +12,7 @@ import (
 
 type RenderContext struct {
 	VCamTranslate Vec3
+	VCamPos Vec3
 
 	MPerspective Mat4
 	MView Mat4
@@ -68,11 +69,11 @@ func (context *RenderContext) StartFrame() {
 func (context *RenderContext) SetCamera() {
 	phys := context.FollowPhysics
 
-	var center, eye, up Vec3
+	var center, up Vec3
 
 	center = Vec3 { float32(phys.PosX), float32(phys.PosY), 0.0 }
-	V3Add(&eye, center, context.VCamTranslate)
+	V3Add(&context.VCamPos, center, context.VCamTranslate)
 	up = Vec3 { 0.0, 1.0, 1.0 }
 
-	M4LookAt(&context.MView, eye, center, up)
+	M4LookAt(&context.MView, context.VCamPos, center, up)
 }

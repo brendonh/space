@@ -18,7 +18,7 @@ func NewDustfieldMaterial() *DustfieldMaterial {
 }
 
 // XXX TODO: Parameterize
-func (sm *DustfieldMaterial) Render(mP, mV *Mat4, centerX, centerY float64) {
+func (sm *DustfieldMaterial) Render(mP, mV *Mat4, camPos Vec3) {
 
 	program, err := ShaderCache.GetShader("starfield", "starfield.vert", "starfield.frag")
 	if err != nil {
@@ -39,7 +39,7 @@ func (sm *DustfieldMaterial) Render(mP, mV *Mat4, centerX, centerY float64) {
 	defer aStarPosition.DisableArray()
 
     uCenterPosition := program.GetUniformLocation("uCenterPosition")
-	uCenterPosition.Uniform3f(float32(centerX), float32(centerY), 0.0)
+	uCenterPosition.Uniform3f(camPos[0], camPos[1], 0.0)
 
     uPerspective := program.GetUniformLocation("uPMatrix")
     uPerspective.UniformMatrix4fv(false, *mP)
@@ -47,8 +47,8 @@ func (sm *DustfieldMaterial) Render(mP, mV *Mat4, centerX, centerY float64) {
     uView := program.GetUniformLocation("uVMatrix")
 	uView.UniformMatrix4fv(false, *mV)
 
-	startX := floorMod(centerX, 5.0)
-	startY := floorMod(centerY, 5.0)
+	startX := floorMod(camPos[0], 5.0)
+	startY := floorMod(camPos[1], 5.0)
 
     uBasePosition := program.GetUniformLocation("uBasePosition")
 
@@ -61,10 +61,10 @@ func (sm *DustfieldMaterial) Render(mP, mV *Mat4, centerX, centerY float64) {
 }
 
 
-func floorMod (val, quot float64) float64 {
+func floorMod (val, quot float32) float64 {
 	q := val / quot
 	if val < 0 {
 		q -= 1
 	}
-	return float64(int(q)) * quot
+	return float64(int(q)) * float64(quot)
 }

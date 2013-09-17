@@ -20,6 +20,7 @@ type RenderContext struct {
 	VLightDir Vec3
 
 	FollowPhysics *SpacePhysics
+	FrameDelta float64
 }
 
 func NewRenderContext() *RenderContext {
@@ -48,6 +49,8 @@ func (context *RenderContext) Init() {
 
 	gl.Enable( gl.BLEND )
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	gl.Enable(gl.MULTISAMPLE)
 }
 
 func (context *RenderContext) FollowEntity(e *Entity) {
@@ -61,7 +64,8 @@ func (context *RenderContext) Resize(width, height int) {
 	gl.Viewport(0, 0, width, height)
 }
 
-func (context *RenderContext) StartFrame() {
+func (context *RenderContext) StartFrame(delta float64) {
+	context.FrameDelta = delta
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	context.SetCamera()
 }
@@ -71,7 +75,9 @@ func (context *RenderContext) SetCamera() {
 
 	var center, up Vec3
 
-	center = Vec3 { float32(phys.PosX), float32(phys.PosY), 0.0 }
+	var pos = phys.InterpolatePosition(context.FrameDelta)
+	
+	center = Vec3 { float32(pos.PosX), float32(pos.PosY), 0.0 }
 	V3Add(&context.VCamPos, center, context.VCamTranslate)
 	up = Vec3 { 0.0, 1.0, 1.0 }
 

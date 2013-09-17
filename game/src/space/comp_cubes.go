@@ -41,7 +41,7 @@ func (c *CubesComponent) SetEntity(e *Entity) {
 
 func (c *CubesComponent) Render(context *RenderContext) {
 	var mPhysics Mat4
-	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(), &c.mModel)
+	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(context.FrameDelta), &c.mModel)
 	M4MulM4(&mPhysics, &context.MView, &mPhysics)
 	render.RenderCubeMaterial(
 		&context.MPerspective, &mPhysics, context.VLightDir,

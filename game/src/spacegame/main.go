@@ -35,6 +35,8 @@ func main() {
 	}
 	defer glfw.Terminate()
 
+	glfw.WindowHint(glfw.Samples, 2);
+
 	window, err := glfw.CreateWindow(Width, Height, Title, nil, nil)
 	if err != nil {
 		panic(err)

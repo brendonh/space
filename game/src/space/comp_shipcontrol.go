@@ -27,11 +27,8 @@ func (c *ShipControl) SetEntity(e *Entity) {
 func (c *ShipControl) TickLogic() {
 	var physics = c.Physics
 
-	physics.Angle += c.Turn * 0.05
-	physics.ApplyForce(
-		physics.Angle,
-		c.Thrust * 0.001,
-	)
+	physics.ApplyRotation(c.Turn * 0.05)
+	physics.ApplyThrust(c.Thrust * 0.0005)
 	
 	if (c.Brake > 0.005) {
 		x, y := physics.VelX, physics.VelY
@@ -40,9 +37,9 @@ func (c *ShipControl) TickLogic() {
 
 		force := math.Sqrt(x*x + y*y)
 		if force > 0.001 {
-			force = math.Min(force, 0.0005)
+			force = math.Min(force, 0.0001)
 		}
 
 		physics.ApplyForce(dir, force)
-	}		
+	}
 }

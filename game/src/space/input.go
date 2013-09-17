@@ -8,13 +8,13 @@ import (
 )
 
 
-var KEYS = map[string]glfw.Key {
-	"quit_game": glfw.KeyEscape,
+var KEYS = map[string][]glfw.Key {
+	"quit_game": []glfw.Key { glfw.KeyEscape },
 
-	"ship_accel": glfw.KeyUp,
-	"ship_decel": glfw.KeyDown,
-	"ship_left": glfw.KeyLeft,
-	"ship_right": glfw.KeyRight,
+	"ship_accel": []glfw.Key { glfw.KeyUp, glfw.KeyW },
+	"ship_decel": []glfw.Key { glfw.KeyDown, glfw.KeyS },
+	"ship_left": []glfw.Key { glfw.KeyLeft, glfw.KeyA },
+	"ship_right": []glfw.Key { glfw.KeyRight, glfw.KeyD },
 }
 
 
@@ -94,22 +94,23 @@ func NewInputSystem() *InputSystem {
 
 func (is *InputSystem) Add(c InputComponent) {
 	for _, action := range c.Actions() {
-		key, ok := KEYS[action]
+		keys, ok := KEYS[action]
 		if !ok {
 			panic("Registering unknown input action: " + action)
 		}
 
-		fmt.Println("Registering action", action, c)
-		handlerSet, ok := is.handlers[key]
-		if !ok {
-			handlerSet = &KeyHandlerSet { Key: key }
-			is.handlers[key] = handlerSet
+		for _, key := range keys {
+			fmt.Println("Registering action", action, c)
+			handlerSet, ok := is.handlers[key]
+			if !ok {
+				handlerSet = &KeyHandlerSet { Key: key }
+				is.handlers[key] = handlerSet
+			}
+			handlerSet.Add(&KeyHandler {
+				Handler: c,
+				Action: action,
+			})
 		}
-		handlerSet.Add(&KeyHandler {
-			Handler: c,
-			Action: action,
-		})
-		
 	}
 }
 

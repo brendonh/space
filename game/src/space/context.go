@@ -11,7 +11,6 @@ import (
 )
 
 type RenderContext struct {
-	QCamRotate Quat
 	VCamTranslate Vec3
 
 	MPerspective Mat4
@@ -25,10 +24,8 @@ type RenderContext struct {
 func NewRenderContext() *RenderContext {
 	context := &RenderContext {
 		VLightDir: Vec3 { 0.0, 0.0, -1.0 },
-		VCamTranslate: Vec3 { 0.0, 0.0, 6.0 },
+		VCamTranslate: Vec3 { 0.0, -2.0, 6.0 },
 	}
-
-	QIdent(&context.QCamRotate)
 
 	return context
 }
@@ -47,6 +44,9 @@ func (context *RenderContext) Init() {
     gl.CullFace(gl.BACK)
 
 	gl.Enable(gl.PROGRAM_POINT_SIZE)
+
+	gl.Enable( gl.BLEND )
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 }
 
 func (context *RenderContext) FollowEntity(e *Entity) {

@@ -17,8 +17,8 @@ func NewDustfieldMaterial() *DustfieldMaterial {
 	}
 }
 
-
-func (sm *DustfieldMaterial) Render(mP, mV *Mat4, stars []float32) {
+// XXX TODO: Parameterize
+func (sm *DustfieldMaterial) Render(mP, mV *Mat4, centerX, centerY float64) {
 
 	program, err := ShaderCache.GetShader("starfield", "starfield.vert", "starfield.frag")
 	if err != nil {
@@ -29,20 +29,42 @@ func (sm *DustfieldMaterial) Render(mP, mV *Mat4, stars []float32) {
 
     sm.starBuffer.Bind(gl.ARRAY_BUFFER)
 
-    gl.BufferData(gl.ARRAY_BUFFER, len(stars) * 4, stars, gl.DYNAMIC_DRAW);
+	var firstPoint = []float32{ 0.0, 0.0, 0.0, 1.0 }
 
-    aVertexPosition := program.GetAttribLocation("aStarPosition")
-    aVertexPosition.AttribPointer(4, gl.FLOAT, false, 0, uintptr(0))
-	aVertexPosition.EnableArray()
-	defer aVertexPosition.DisableArray()
+    gl.BufferData(gl.ARRAY_BUFFER, 3 * 4, firstPoint, gl.STATIC_DRAW);
 
-    pUniform := program.GetUniformLocation("uPMatrix")
-    pUniform.UniformMatrix4fv(false, *mP)
+    aStarPosition := program.GetAttribLocation("aStarPosition")
+    aStarPosition.AttribPointer(3, gl.FLOAT, false, 0, uintptr(0))
+	aStarPosition.EnableArray()
+	defer aStarPosition.DisableArray()
+
+    uCenterPosition := program.GetUniformLocation("uCenterPosition")
+	uCenterPosition.Uniform3f(float32(centerX), float32(centerY), 0.0)
+
+    uPerspective := program.GetUniformLocation("uPMatrix")
+    uPerspective.UniformMatrix4fv(false, *mP)
 	
     uView := program.GetUniformLocation("uVMatrix")
 	uView.UniformMatrix4fv(false, *mV)
 
-	gl.DrawArrays(gl.POINTS, 0, len(stars) / 4)
+	startX := floorMod(centerX, 5.0)
+	startY := floorMod(centerY, 5.0)
+
+    uBasePosition := program.GetUniformLocation("uBasePosition")
+
+	for x := startX - 5; x <= startX + 5; x += 5 {
+		for y := startY - 5; y <= startY + 5; y += 5 {
+			uBasePosition.Uniform3f(float32(x), float32(y), -2.5)
+			gl.DrawArraysInstanced(gl.POINTS, 0, 1, 20)
+		}
+	}
 }
 
 
+func floorMod (val, quot float64) float64 {
+	q := val / quot
+	if val < 0 {
+		q -= 1
+	}
+	return float64(int(q)) * quot
+}

@@ -30,7 +30,7 @@ func (c *ShipControl) TickLogic() {
 	physics.Angle += c.Turn * 0.05
 	physics.ApplyForce(
 		physics.Angle,
-		c.Thrust * 0.003,
+		c.Thrust * 0.001,
 	)
 	
 	if (c.Brake > 0.005) {

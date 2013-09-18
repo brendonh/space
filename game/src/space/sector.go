@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 )
 
 type Sector struct {
@@ -27,7 +26,6 @@ func NewSector() *Sector {
 func (s *Sector) AddEntity(e *Entity) {
 	e.Sector = s
 
-	fmt.Println("Adding entity", e)
 	s.Entities[e.ID] = e
 	
 	for _, c := range e.Components {

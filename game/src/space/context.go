@@ -21,6 +21,7 @@ type RenderContext struct {
 
 	FollowPhysics *SpacePhysics
 	FrameDelta float64
+
 }
 
 func NewRenderContext() *RenderContext {
@@ -78,7 +79,9 @@ func (context *RenderContext) SetCamera() {
 	var pos = phys.InterpolatePosition(context.FrameDelta)
 	
 	center = Vec3 { float32(pos.PosX), float32(pos.PosY), 0.0 }
+
 	V3Add(&context.VCamPos, center, context.VCamTranslate)
+
 	up = Vec3 { 0.0, 1.0, 1.0 }
 
 	M4LookAt(&context.MView, context.VCamPos, center, up)

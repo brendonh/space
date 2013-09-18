@@ -61,10 +61,10 @@ func (sm *DustfieldMaterial) Render(mP, mV *Mat4, camPos Vec3) {
 }
 
 
-func floorMod (val, quot float32) float64 {
+func floorMod (val, quot float32) int {
 	q := val / quot
-	if val < 0 {
+	if val <= 0 {
 		q -= 1
 	}
-	return float64(int(q)) * float64(quot)
+	return int(q) * int(quot)
 }

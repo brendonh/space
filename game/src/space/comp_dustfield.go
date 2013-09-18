@@ -2,17 +2,13 @@ package space
 
 import (
 	"space/render"
-
 )
-
-var DUST_COUNT = 10
 
 type Dustfield struct {
 	Entity *Entity
 	Physics *SpacePhysics
 
 	material *render.DustfieldMaterial
-	//stars []float32
 }
 
 

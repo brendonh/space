@@ -1,4 +1,4 @@
-attribute vec3 aStarPosition;
+attribute vec3 aPosition;
 
 uniform vec3 uBasePosition;
 uniform vec3 uCenterPosition;
@@ -25,13 +25,13 @@ void main(void) {
   float rand3 = rand(vec2(rand0, rand2));
 
   vec4 pos = vec4( uBasePosition.x + rand1 * 5,
-                   uBasePosition.y + rand2 * 5, 
-                   uBasePosition.z + rand3 * 5, 
+                   uBasePosition.y + rand2 * 5,
+                   uBasePosition.z + rand3 * 5,
                    1.0 );
 
   gl_Position = uPMatrix * uVMatrix * pos;
-  gl_PointSize = rand(vec2(rand3, 0.0)) * 5.0;
+  gl_PointSize = rand(vec2(rand3, 0.0)) * 3.0;
 
-  float alpha = max(0.0, length(uCenterPosition.xy - pos.xy) / 10.0);
+  float alpha = max(0.0, length(uCenterPosition.xy - pos.xy) / 5.0);
   vColor = vec4(1.0, 1.0, 1.0, 1 - alpha);
 }

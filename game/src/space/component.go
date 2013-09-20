@@ -1,5 +1,9 @@
 package space
 
+import (
+	"space/render"
+)
+
 type Component interface {
 	Tag() string
 	SetEntity(*Entity)
@@ -18,7 +22,7 @@ type LogicComponent interface {
 
 type RenderComponent interface {
 	Component
-	Render(*RenderContext)
+	Render(context *render.Context, alpha float64)
 }
 
 type PhysicalComponent interface {

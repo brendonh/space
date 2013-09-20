@@ -1,6 +1,7 @@
 package space
 
 import (
+	"space/render"
 )
 
 type Sector struct {
@@ -57,8 +58,8 @@ func (s *Sector) Tick() {
 	s.updateEntities()
 }
 
-func (s *Sector) Render(context *RenderContext) {
-	s.render.Render(context)
+func (s *Sector) Render(context *render.Context, alpha float64) {
+	s.render.Render(context, alpha)
 }
 
 func (s *Sector) updateEntities() {

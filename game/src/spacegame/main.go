@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"runtime"
 
+	"net/http"
+	_ "net/http/pprof"
+
 	"space"
 
 	glfw "github.com/go-gl/glfw3"
@@ -28,6 +31,10 @@ func errorCallback(err glfw.ErrorCode, desc string) {
 
 
 func main() {
+
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	glfw.SetErrorCallback(errorCallback)
 
@@ -80,7 +87,7 @@ func initSector(ml *space.Mainloop) {
 	ship.AddComponent(&space.ShipInput{})
 	ship.InitComponents()
 	ml.Sector.AddEntity(ship)
-	ml.RenderContext.FollowEntity(ship)
+	ml.Camera.FollowEntity(ship)
 
 	
 	for i := 1; i < 100; i++ {

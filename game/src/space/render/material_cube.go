@@ -7,6 +7,35 @@ import (
 	. "github.com/brendonh/glvec"
 )
 
+const (
+	CM_Attr_VertexPosition = iota
+	CM_Attr_VertexNormal
+	CM_Attr_VertexColor
+
+	CM_Unif_vLightDirection
+	CM_Unif_mPerspective
+
+	CM_Unif_mModelView
+	CM_Unif_mNormal
+)
+
+type CubeMaterial BaseMaterial
+
+
+func (cm *CubeMaterial) Init() {
+	program, err := ShaderCache.GetShader("cube", "cube.vert", "cube.frag")
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't get cube material: %s", err))
+	}
+
+	cm.AttribLocations = []gl.AttribLocation {
+		CM_Attr_VertexPosition: program.GetAttribLocation("aVertexPosition"),
+		CM_Attr_VertexNormal: program.GetAttribLocation("aNormal"),
+		CM_Attr_VertexColor: program.GetAttribLocation("aVertexColor"),
+	}
+}
+
+//func (cm *CubeMaterial) Render(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) {
 func RenderCubeMaterial(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) {
 	program, err := ShaderCache.GetShader("cube", "cube.vert", "cube.frag")
 	if err != nil {

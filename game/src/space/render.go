@@ -1,5 +1,9 @@
 package space
 
+import (
+	"space/render"
+)
+
 type RenderSystem struct {
 	Active []RenderComponent
 	toAdd []RenderComponent
@@ -37,8 +41,8 @@ func (s *RenderSystem) Update() {
 	s.toRemove = nil
 }
 
-func (s *RenderSystem) Render(context *RenderContext) {
+func (s *RenderSystem) Render(context *render.Context, alpha float64) {
 	for _, c := range s.Active {
-		c.Render(context)
+		c.Render(context, alpha)
 	}
 }

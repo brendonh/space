@@ -2,9 +2,10 @@ package space
 
 import (
 	"fmt"
-
 	"encoding/json"
 	"io/ioutil"
+
+	"space/render"
 
 	glfw "github.com/go-gl/glfw3"
 )
@@ -12,7 +13,11 @@ import (
 type Mainloop struct {
 	Window *glfw.Window
 	Entities *EntityManager
-	RenderContext *RenderContext
+
+	Camera *Camera
+
+	RenderContext *render.Context
+
 	Sector *Sector
 
 	stopping bool
@@ -21,8 +26,9 @@ type Mainloop struct {
 func NewMainloop(window *glfw.Window) *Mainloop {
 	return &Mainloop {
 		Window: window,
-		RenderContext: NewRenderContext(),
+		RenderContext: render.NewContext(),
 		Entities: NewEntityManager(),
+		Camera: NewCamera(),
 		stopping: false,
 	}
 }
@@ -46,8 +52,15 @@ func (m *Mainloop) Loop() {
 
 	prevTime := glfw.GetTime()
 	var tickAcc float64 = 0 
+
+	var ticksPerFrame []int
+	var frameTimes []float64
+	m.Sector.Tick()
 	
 	for !m.Window.ShouldClose() {
+		now := glfw.GetTime()
+		tickAcc += (now - prevTime)
+		prevTime = now
 
 		glfw.PollEvents()
 
@@ -55,23 +68,24 @@ func (m *Mainloop) Loop() {
 			break
 		}
 
-		now := glfw.GetTime()
-
-		tickAcc += (now - prevTime)
-
-		prevTime = now
-
 		for ; tickAcc >= secondsPerTick; tickAcc -= secondsPerTick {
 			m.Sector.Tick()
 		}
 
-		var delta = tickAcc / secondsPerTick
+		var alpha = tickAcc / secondsPerTick
 
-		m.RenderContext.StartFrame(delta)
-		m.Sector.Render(m.RenderContext)
+		m.RenderContext.StartFrame()
+		m.Camera.UpdateRenderContext(m.RenderContext, alpha)
+		m.Sector.Render(m.RenderContext, alpha)
+
+		frameTimes = append(frameTimes, glfw.GetTime() - now)
+
 		m.Window.SwapBuffers()
 
 	}
+
+	m.DumpData(ticksPerFrame, "ticks.json")
+	m.DumpData(frameTimes, "frametimes.json")
 
 }
 

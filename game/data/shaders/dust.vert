@@ -1,9 +1,10 @@
-attribute vec3 aPosition;
+//attribute vec3 aPosition;
+
+uniform mat4 uPerspective;
+uniform mat4 uView;
 
 uniform vec3 uBasePosition;
 uniform vec3 uCenterPosition;
-uniform mat4 uPMatrix;
-uniform mat4 uVMatrix;
 
 varying vec4 vColor;
   
@@ -29,7 +30,7 @@ void main(void) {
                    uBasePosition.z + rand3 * 5,
                    1.0 );
 
-  gl_Position = uPMatrix * uVMatrix * pos;
+  gl_Position = uPerspective * uView * pos;
   gl_PointSize = rand(vec2(rand3, 0.0)) * 3.0;
 
   float alpha = max(0.0, length(uCenterPosition.xy - pos.xy) / 5.0);

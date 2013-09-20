@@ -43,9 +43,20 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 	var mPhysics Mat4
 	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(alpha), &c.mModel)
 	M4MulM4(&mPhysics, &context.MView, &mPhysics)
-	render.RenderCubeMaterial(
-		&context.MPerspective, &mPhysics, context.VLightDir,
-		c.verts, c.count)
+
+	// Temp
+	mat := render.NewCubeMaterial()
+	mat.Prepare(context)
+	mat.Render(&render.CubeRenderArguments {
+		MModelView: mPhysics,
+		Verts: c.verts,
+		TriCount: c.count,
+	})
+	mat.Cleanup()
+
+	// render.RenderCubeMaterial(
+	// 	&context.MPerspective, &mPhysics, context.VLightDir,
+	// 	c.verts, c.count)
 }
 
 

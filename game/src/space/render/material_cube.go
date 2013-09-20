@@ -1,81 +1,100 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
 
 const (
-	CM_Attr_VertexPosition = iota
-	CM_Attr_VertexNormal
-	CM_Attr_VertexColor
+	CubeAttr_VertexPosition = iota
+	CubeAttr_VertexNormal
+	CubeAttr_VertexColor
 
-	CM_Unif_vLightDirection
-	CM_Unif_mPerspective
+	CubeUnif_vLightDirection
+	CubeUnif_mPerspective
 
-	CM_Unif_mModelView
-	CM_Unif_mNormal
+	CubeUnif_mModelView
+	CubeUnif_mNormal
 )
 
-type CubeMaterial BaseMaterial
-
-
-func (cm *CubeMaterial) Init() {
-	program, err := ShaderCache.GetShader("cube", "cube.vert", "cube.frag")
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't get cube material: %s", err))
-	}
-
-	cm.AttribLocations = []gl.AttribLocation {
-		CM_Attr_VertexPosition: program.GetAttribLocation("aVertexPosition"),
-		CM_Attr_VertexNormal: program.GetAttribLocation("aNormal"),
-		CM_Attr_VertexColor: program.GetAttribLocation("aVertexColor"),
-	}
+type CubeMaterial struct {
+	*BaseMaterial
 }
 
-//func (cm *CubeMaterial) Render(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) {
-func RenderCubeMaterial(mP, mMV *Mat4, vLight Vec3, verts gl.Buffer, count int) {
-	program, err := ShaderCache.GetShader("cube", "cube.vert", "cube.frag")
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't get cube material: %s", err))
+
+func NewCubeMaterial() *CubeMaterial {
+
+	m := &CubeMaterial{
+		NewBaseMaterial("cube",
+			ShaderSpec{ gl.VERTEX_SHADER, "cube.vert" }, 
+			ShaderSpec{ gl.FRAGMENT_SHADER, "cube.frag" },
+		),
 	}
 
-	program.Use()
+	m.AttribLocations = []gl.AttribLocation {
+		CubeAttr_VertexPosition: m.GetAttribLocation("aVertexPosition"),
+		CubeAttr_VertexNormal: m.GetAttribLocation("aVertexNormal"),
+		CubeAttr_VertexColor: m.GetAttribLocation("aVertexColor"),
+	}
 
-    verts.Bind(gl.ARRAY_BUFFER)
+	m.UniformLocations = []gl.UniformLocation {
+		CubeUnif_vLightDirection: m.GetUniformLocation("uLightDirection"),
+		CubeUnif_mPerspective: m.GetUniformLocation("uPerspective"),
+		CubeUnif_mModelView: m.GetUniformLocation("uModelView"),
+		CubeUnif_mNormal: m.GetUniformLocation("uNormalMatrix"),
+	}
 
-    aVertexPosition := program.GetAttribLocation("aVertexPosition")
+	return m
+}
+
+
+func (cm *CubeMaterial) Prepare(context *Context) {
+	cm.Program.Use()
+	cm.EnableAttribs()
+
+    uPerspective := cm.UniformLocations[CubeUnif_mPerspective]
+	uPerspective.UniformMatrix4fv(false, context.MPerspective)
+
+	uLightDirection := cm.UniformLocations[CubeUnif_vLightDirection]
+	vLight := &context.VLightDir
+    uLightDirection.Uniform3f(vLight[0],vLight[1],vLight[2])
+}
+
+
+func (cm *CubeMaterial) Cleanup() {
+	cm.DisableAttribs()
+}
+
+
+type CubeRenderArguments struct {
+	MModelView Mat4
+	Verts gl.Buffer
+	TriCount int
+}
+
+func (cm *CubeMaterial) Render(args interface{}) {
+	cubeArgs := args.(*CubeRenderArguments)
+
+    cubeArgs.Verts.Bind(gl.ARRAY_BUFFER)
+
+    aVertexPosition := cm.AttribLocations[CubeAttr_VertexPosition]
+    aVertexNormal := cm.AttribLocations[CubeAttr_VertexNormal]
+    aVertexColor := cm.AttribLocations[CubeAttr_VertexColor]
+
     aVertexPosition.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(0))
-	aVertexPosition.EnableArray()
-	defer aVertexPosition.DisableArray()
-
-    aVertexNormal := program.GetAttribLocation("aNormal")
     aVertexNormal.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(3 * 4))
-	aVertexNormal.EnableArray()
-	defer aVertexNormal.DisableArray()
-
-    aVertexColor := program.GetAttribLocation("aVertexColor")
     aVertexColor.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(6 * 4))
-	aVertexColor.EnableArray()
-	defer aVertexNormal.DisableArray()
 
-    pUniform := program.GetUniformLocation("uPMatrix")
-    pUniform.UniformMatrix4fv(false, *mP)
-
-    mvUniform := program.GetUniformLocation("uMVMatrix")
-    mvUniform.UniformMatrix4fv(false, *mMV)
+    uModelView := cm.UniformLocations[CubeUnif_mModelView]
+	uModelView.UniformMatrix4fv(false, cubeArgs.MModelView)
 
 	var mMVN Mat3
-	M4RotationMatrix(&mMVN, mMV)
-    mvNormal := program.GetUniformLocation("uNormalMatrix")
-    mvNormal.UniformMatrix3fv(false, mMVN)
+	M4RotationMatrix(&mMVN, &cubeArgs.MModelView)
 
-    uLightDirection := program.GetUniformLocation("uLightDirection")
-    uLightDirection.Uniform3f(vLight[0],vLight[1],vLight[2])
+	uNormal := cm.UniformLocations[CubeUnif_mNormal]
+    uNormal.UniformMatrix3fv(false, mMVN)
 
-    gl.DrawArrays(gl.TRIANGLES, 0, count*3)
+    gl.DrawArrays(gl.TRIANGLES, 0, cubeArgs.TriCount * 3)
 }
 
 

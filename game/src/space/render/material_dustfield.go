@@ -1,56 +1,72 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
 
-type DustfieldMaterial struct {
+const (
+	DustUnif_mPerspective = iota
+	DustUnif_mView
+
+	DustUnif_vBasePosition
+	DustUnif_vCenterPosition
+)
+
+type DustMaterial struct {
+	*BaseMaterial
 	starBuffer gl.Buffer
 }
 
-func NewDustfieldMaterial() *DustfieldMaterial {
-	return &DustfieldMaterial {
-		starBuffer: gl.GenBuffer(),
+func NewDustMaterial() *DustMaterial {
+	m := &DustMaterial {
+		NewBaseMaterial("starfield", 
+			ShaderSpec{ gl.VERTEX_SHADER, "dust.vert" }, 
+			ShaderSpec{ gl.FRAGMENT_SHADER, "dust.frag" },
+		),
+		gl.GenBuffer(),
 	}
+
+	m.UniformLocations = []gl.UniformLocation {
+		DustUnif_mPerspective: m.GetUniformLocation("uPerspective"),
+		DustUnif_mView: m.GetUniformLocation("uView"),
+
+		DustUnif_vBasePosition: m.GetUniformLocation("uBasePosition"),
+		DustUnif_vCenterPosition: m.GetUniformLocation("uCenterPosition"),
+	}
+
+	return m
 }
 
+
+func (dm *DustMaterial) Prepare(context *Context) {
+	dm.Program.Use()
+	dm.EnableAttribs()
+
+    uPerspective := dm.UniformLocations[DustUnif_mPerspective]
+	uPerspective.UniformMatrix4fv(false, context.MPerspective)
+
+    uView := dm.UniformLocations[DustUnif_mView]
+	uView.UniformMatrix4fv(false, context.MView)
+
+    uCenterPosition := dm.UniformLocations[DustUnif_vCenterPosition]
+	uCenterPosition.Uniform3f(context.VCamPos[0], context.VCamPos[1], 0.0)
+}
+
+
+func (dm *DustMaterial) Cleanup() {
+	dm.DisableAttribs()
+}
+
+
 // XXX TODO: Parameterize
-func (sm *DustfieldMaterial) Render(mP, mV *Mat4, camPos Vec3) {
-
-	program, err := ShaderCache.GetShader("starfield", "starfield.vert", "starfield.frag")
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't get starfield material: %s", err))
-	}
-
-	program.Use()
-
-    sm.starBuffer.Bind(gl.ARRAY_BUFFER)
-
-	var firstPoint = []float32{ 0.0, 0.0, 0.0, 1.0 }
-
-    gl.BufferData(gl.ARRAY_BUFFER, 3 * 4, firstPoint, gl.STATIC_DRAW);
-
-    aStarPosition := program.GetAttribLocation("aStarPosition")
-    aStarPosition.AttribPointer(3, gl.FLOAT, false, 0, uintptr(0))
-	aStarPosition.EnableArray()
-	defer aStarPosition.DisableArray()
-
-    uCenterPosition := program.GetUniformLocation("uCenterPosition")
-	uCenterPosition.Uniform3f(camPos[0], camPos[1], 0.0)
-
-    uPerspective := program.GetUniformLocation("uPMatrix")
-    uPerspective.UniformMatrix4fv(false, *mP)
-	
-    uView := program.GetUniformLocation("uVMatrix")
-	uView.UniformMatrix4fv(false, *mV)
+func (dm *DustMaterial) Render(args interface{}) {
+	var camPos = args.(Vec3)
 
 	startX := floorMod(camPos[0], 5.0)
 	startY := floorMod(camPos[1], 5.0)
 
-    uBasePosition := program.GetUniformLocation("uBasePosition")
+	uBasePosition := dm.UniformLocations[DustUnif_vBasePosition]
 
 	for x := startX - 5; x <= startX + 5; x += 5 {
 		for y := startY - 5; y <= startY + 5; y += 5 {

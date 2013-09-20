@@ -8,13 +8,13 @@ type Dustfield struct {
 	Entity *Entity
 	Physics *SpacePhysics
 
-	material *render.DustfieldMaterial
+	//material *render.DustMaterial
 }
 
 
 func NewDustfield() *Dustfield {
 	return &Dustfield {
-		material: render.NewDustfieldMaterial(),
+		//material: render.NewDustfieldMaterial(),
 	}
 }
 
@@ -31,6 +31,13 @@ func (s *Dustfield) SetEntity(e *Entity) {
 }
 
 func (s *Dustfield) Render(context *render.Context, alpha float64) {
-	s.material.Render(
-		&context.MPerspective, &context.MView, context.VCamPos)
+	
+	// Temp
+	mat := render.NewDustMaterial()
+	mat.Prepare(context)
+	mat.Render(context.VCamPos)
+	mat.Cleanup()
+
+	// s.material.Render(
+	// 	&context.MPerspective, &context.MView, context.VCamPos)
 }

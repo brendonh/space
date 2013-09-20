@@ -80,15 +80,20 @@ func main() {
 
 func initSector(ml *space.Mainloop) {
 	ml.Sector = space.NewSector()
+
 	ship := ml.Entities.NewEntity()
-	ship.AddComponent(&space.SpacePhysics{})
+	ship.AddComponent(&space.SpacePhysics{
+		Position: space.SpacePosition {
+			PosX: 0.0,
+			PosY: 0.0,
+		},
+	})
 	ship.AddComponent(space.NewCubesComponent())
 	ship.AddComponent(&space.ShipControl{})
 	ship.AddComponent(&space.ShipInput{})
 	ship.InitComponents()
 	ml.Sector.AddEntity(ship)
 	ml.Camera.FollowEntity(ship)
-
 	
 	for i := 1; i < 100; i++ {
 

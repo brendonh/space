@@ -18,35 +18,33 @@ var ShaderCache = &shaderCache {
 	shaders: make(map[string]gl.Program),
 }
 
-func (c *shaderCache) GetShader(tag string, vert string, frag string) (*gl.Program, error) {
+type ShaderSpec struct {
+	Type gl.GLenum
+	Name string
+}
+
+func (c *shaderCache) GetShader(tag string, shaderSpecs... ShaderSpec) (*gl.Program, error) {
 	program, ok := c.shaders[tag]
 	if ok {
 		return &program, nil
 	}
 
-	vertSource, err := loadShaderSource(vert)
-	if err != nil {
-		return nil, err
-	}
-
-	fragSource, err := loadShaderSource(frag)
-	if err != nil {
-		return nil, err
-	}
-
-	vertShader, err := compileShader(gl.VERTEX_SHADER, vertSource)
-	if err != nil {
-		return nil, err
-	}
-
-	fragShader, err := compileShader(gl.FRAGMENT_SHADER, fragSource)
-	if err != nil {
-		return nil, err
-	}
-
     program = gl.CreateProgram();
-	program.AttachShader(*vertShader)
-	program.AttachShader(*fragShader)
+
+	for _, spec := range shaderSpecs {
+		source, err := loadShaderSource(spec.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		shader, err := compileShader(spec.Type, source)
+		if err != nil {
+			return nil, err
+		}
+
+		program.AttachShader(*shader)
+	}
+
     program.Link()
 
 	if program.Get(gl.LINK_STATUS) != gl.TRUE {
@@ -57,8 +55,6 @@ func (c *shaderCache) GetShader(tag string, vert string, frag string) (*gl.Progr
 
 	return &program, nil
 }
-
-
 
 
 func compileShader(shaderType gl.GLenum, source string) (*gl.Shader, error) {

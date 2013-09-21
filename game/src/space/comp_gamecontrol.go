@@ -1,19 +1,13 @@
 package space
 
-import "fmt"
-
 type GameControl struct {
+	BaseComponent
+
 	Mainloop *Mainloop
 }
 
-func (c *GameControl) Init() {
-}
-
 func (c *GameControl) Tag() string {
-	return ""
-}
-
-func (c *GameControl) SetEntity(e *Entity) {
+	return "struct_gamecontrol"
 }
 
 func (c *GameControl) Priority() int {
@@ -21,14 +15,16 @@ func (c *GameControl) Priority() int {
 }
 
 func (c *GameControl) Actions() []string {
-	return []string { "quit_game" }
+	return []string { "fullscreen", "quit_game" }
 }
 
 func (c *GameControl) KeyDown(action string) bool {
 	switch (action) {
 	case "quit_game":
-		fmt.Println("Quitting")
-		c.Mainloop.stopping = true
+		c.Mainloop.RenderContext.Window.SetShouldClose(true)
+		return true
+	case "fullscreen":
+		c.Mainloop.ToggleFullscreen()
 		return true
 	}
 	return false

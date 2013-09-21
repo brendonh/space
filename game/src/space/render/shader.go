@@ -14,8 +14,16 @@ type shaderCache struct {
 	shaders map[string]gl.Program
 }
 
-var ShaderCache = &shaderCache {
-	shaders: make(map[string]gl.Program),
+func ClearShaderCache() {
+	ShaderCache = &shaderCache {
+		shaders: make(map[string]gl.Program),
+	}
+}
+
+var ShaderCache *shaderCache
+
+func init() {
+	ClearShaderCache()
 }
 
 type ShaderSpec struct {

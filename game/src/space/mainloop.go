@@ -11,26 +11,32 @@ import (
 )
 
 type Mainloop struct {
-	Window *glfw.Window
 	Entities *EntityManager
-
 	Camera *Camera
-
 	RenderContext *render.Context
-
 	Sector *Sector
 
-	stopping bool
+	restart bool
 }
 
-func NewMainloop(window *glfw.Window) *Mainloop {
-	return &Mainloop {
-		Window: window,
+func NewMainloop() *Mainloop {
+	loop := &Mainloop {
 		RenderContext: render.NewContext(),
 		Entities: NewEntityManager(),
 		Camera: NewCamera(),
-		stopping: false,
+
+		restart: false,
 	}
+
+	loop.RenderContext.Init()
+	loop.PrepareWindow()
+	return loop
+}
+
+func (m *Mainloop) PrepareWindow() {
+	var context = m.RenderContext
+	context.Window.SetFramebufferSizeCallback(m.OnResize)
+	context.Window.SetKeyCallback(m.OnKey)
 }
 
 func (m *Mainloop) SetSector(sector *Sector) {
@@ -41,11 +47,7 @@ func (m *Mainloop) Loop() {
 	var ticksPerSecond float64 = 60.0
 	secondsPerTick := 1.0 / ticksPerSecond
 
-	width, height := m.Window.GetSize()
-	m.RenderContext.Resize(width, height)
-
-	m.Window.SetFramebufferSizeCallback(m.OnResize)
-	m.Window.SetKeyCallback(m.OnKey)
+	var context = m.RenderContext
 
 	m.Sector.RegisterComponent(&GameControl{ Mainloop: m })
 
@@ -53,29 +55,24 @@ func (m *Mainloop) Loop() {
 	var tickAcc float64 = secondsPerTick
 
 	m.Sector.Tick()
-	
-	for !m.Window.ShouldClose() {
+
+	for !context.Window.ShouldClose() {
 		now := glfw.GetTime()
 		tickAcc += (now - prevTime)
 		prevTime = now
-
+		
 		glfw.PollEvents()
-
-		if (m.stopping) {
-			break
-		}
-
+		
 		for ; tickAcc >= secondsPerTick; tickAcc -= secondsPerTick {
 			m.Sector.Tick()
 		}
-
+		
 		var alpha = tickAcc / secondsPerTick
-
+		
 		m.RenderContext.StartFrame()
 		m.Camera.UpdateRenderContext(m.RenderContext, alpha)
 		m.Sector.Render(m.RenderContext, alpha)
 		m.RenderContext.FlushQueue()
-		m.Window.SwapBuffers()
 	}
 
 }
@@ -88,6 +85,13 @@ func (m *Mainloop) OnKey(w *glfw.Window, key glfw.Key, scancode int,
 
 func (m *Mainloop) OnResize(w *glfw.Window, width int, height int) {
 	m.RenderContext.Resize(width, height)
+}
+
+func (m *Mainloop) ToggleFullscreen() {
+	m.RenderContext.ToggleFullscreen()
+	m.PrepareWindow()
+	render.ClearShaderCache()
+	globalDispatch.Fire("gl_init", nil)
 }
 
 func (m *Mainloop) DumpData(points interface{}, filename string) {

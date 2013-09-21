@@ -35,6 +35,12 @@ func GetMaterialID(name string) (MaterialID, bool) {
 	return m.GetID(), true
 }
 
+func ClearMaterials() {
+	materials = nil
+	materialsByName = make(map[string]Material)
+	ClearShaderCache()
+}
+
 // ----------------------------------------------
 
 type Material interface {

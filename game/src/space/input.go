@@ -8,6 +8,7 @@ import (
 
 
 var KEYS = map[string][]glfw.Key {
+	"fullscreen": []glfw.Key { glfw.KeyF },
 	"quit_game": []glfw.Key { glfw.KeyEscape },
 
 	"ship_accel": []glfw.Key { glfw.KeyUp, glfw.KeyW },

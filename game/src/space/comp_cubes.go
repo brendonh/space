@@ -19,21 +19,26 @@ type Cube struct {
 }
 
 type CubesComponent struct {
-	Entity *Entity
+	BaseComponent
+
 	Physics *SpacePhysics
 	MaterialID render.MaterialID
 
-	verts gl.Buffer
-	count int
+	buf []float32
+	cubeCount int
+
+	glBuf gl.Buffer
+	triCount int
 
 	mModel Mat4
 }
 
 func NewCubesComponent() *CubesComponent {
 	comp := &CubesComponent {
+		BaseComponent: NewBaseComponent(),
 		MaterialID: render.GetCubeMaterialID(),
-		verts: gl.GenBuffer(),
-		count: 0,
+		glBuf: gl.GenBuffer(),
+		triCount: 0,
 	}
 	M4MakeScale(&comp.mModel, 0.2)
 	return comp
@@ -41,14 +46,11 @@ func NewCubesComponent() *CubesComponent {
 
 func (c *CubesComponent) Init() {
 	c.Physics = c.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
+	globalDispatch.Listen(c, "gl_init", c.OnGLInit)
 }
 
 func (c *CubesComponent) Tag() string {
 	return "cubes"
-}
-
-func (c *CubesComponent) SetEntity(e *Entity) {
-	c.Entity = e
 }
 
 func (c *CubesComponent) Render(context *render.Context, alpha float64) {
@@ -59,28 +61,36 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 
 	context.Enqueue(c.MaterialID, render.CubeRenderArguments{
 		MModelView: mModelView,
-		Verts: c.verts,
-		TriCount: c.count,
+		Verts: c.glBuf,
+		TriCount: c.triCount,
 	})
 }
 
 var CUBE_VERTS = (3+3+3)*(3+3)*6
 
 func (c *CubesComponent) SetCubes(cubes []Cube) {
-
-	var buf = make([]float32, CUBE_VERTS * len(cubes))
 	var start = 0
 
+	c.buf = make([]float32, CUBE_VERTS * len(cubes))
+
 	for _, cube := range cubes {
-		addCube(buf[start:start + CUBE_VERTS], cube)
+		addCube(c.buf[start:start + CUBE_VERTS], cube)
 		start += CUBE_VERTS
 	}
 
-    c.verts.Bind(gl.ARRAY_BUFFER)
-    gl.BufferData(gl.ARRAY_BUFFER, len(buf) * 4, buf, gl.STATIC_DRAW)
-	
-	c.count = 12 * len(cubes)
+	c.cubeCount = len(cubes)
+	c.RefreshGLBuffer()
+}
 
+func(c *CubesComponent) RefreshGLBuffer() {
+    c.glBuf.Bind(gl.ARRAY_BUFFER)
+    gl.BufferData(gl.ARRAY_BUFFER, len(c.buf) * 4, c.buf, gl.STATIC_DRAW)
+	
+	c.triCount = 12 * c.cubeCount
+}
+
+func (c *CubesComponent) OnGLInit(args interface{}) {
+	c.RefreshGLBuffer()
 }
 
 func addCube(buf []float32, cube Cube) {

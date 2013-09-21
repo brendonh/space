@@ -24,7 +24,7 @@ type SpacePosition struct {
 }
 
 type SpacePhysics struct {
-	Entity *Entity
+	BaseComponent
 
 	Position SpacePosition
 	PrevPosition SpacePosition
@@ -37,15 +37,8 @@ type SpacePhysics struct {
 	Forces []SpaceForce
 }
 
-func (c *SpacePhysics) Init() {
-}
-
 func (c *SpacePhysics) Tag() string {
 	return "struct_spacephysics"
-}
-
-func (c *SpacePhysics) SetEntity (e *Entity) {
-	c.Entity = e
 }
 
 func (c *SpacePhysics) TickPhysics() {

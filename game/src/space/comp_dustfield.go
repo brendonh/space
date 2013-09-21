@@ -7,7 +7,8 @@ import (
 )
 
 type Dustfield struct {
-	Entity *Entity
+	BaseComponent
+
 	Physics *SpacePhysics
 	MaterialID render.MaterialID
 	Density int
@@ -22,15 +23,11 @@ func NewDustfield() *Dustfield {
 }
 
 func (s *Dustfield) Init() {
+	s.Physics = s.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
 }
 
 func (s *Dustfield) Tag() string {
-	return ""
-}
-
-func (s *Dustfield) SetEntity(e *Entity) {
-	s.Entity = e
-	s.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
+	return "dust"
 }
 
 func (s *Dustfield) Render(context *render.Context, alpha float64) {

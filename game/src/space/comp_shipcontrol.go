@@ -5,7 +5,8 @@ import (
 )
 
 type ShipControl struct {
-	Ship *Entity
+	BaseComponent
+
 	Physics *SpacePhysics
 	Thrust float64
 	Brake float64
@@ -13,15 +14,11 @@ type ShipControl struct {
 }
 
 func (c *ShipControl) Init() {
-	c.Physics = c.Ship.GetComponent("struct_spacephysics").(*SpacePhysics)
+	c.Physics = c.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
 }
 
 func (c *ShipControl) Tag() string {
 	return "struct_shipcontrol"
-}
-
-func (c *ShipControl) SetEntity(e *Entity) {
-	c.Ship = e
 }
 
 func (c *ShipControl) TickLogic() {

@@ -27,17 +27,14 @@ func MakeSquareRoom(width, height int, color CubeColor) *Room {
 
 
 type RoomsComponent struct {
-	Entity *Entity
+	BaseComponent
+
 	Rooms []*Room
 	Cubes *CubesComponent
 }
 
 func (r *RoomsComponent) Tag() string {
 	return "rooms"
-}
-
-func (r *RoomsComponent) SetEntity(e *Entity) {
-	r.Entity = e
 }
 
 func (r *RoomsComponent) Init() {

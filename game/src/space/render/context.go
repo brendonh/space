@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -11,20 +12,36 @@ import (
 
 )
 
+type WindowConfig struct {
+	Title string
+	Width int
+	Height int
+	Fullscreen bool
+}
+
+var defaultWindowConfig = WindowConfig{
+	Title: "SPACE",
+	Width: 800,
+	Height: 600,
+	Fullscreen: false,
+}
+
 type Context struct {
-	VCamPos Vec3
+	Config *WindowConfig
+	Window *glfw.Window
+	RenderQueue RenderQueue
 
 	MPerspective Mat4
 	MView Mat4
 
+	VCamPos Vec3
 	VLightDir Vec3
-
-	RenderQueue RenderQueue
 }
 
 
 func NewContext() *Context {
 	context := &Context {
+		Config: &defaultWindowConfig,
 		VLightDir: Vec3 { 0.0, -1.0, -2.0 },
 	}
 
@@ -32,9 +49,71 @@ func NewContext() *Context {
 }
 
 func (context *Context) Init() {
-	glfw.SwapInterval(0)
+	glfw.SetErrorCallback(func (err glfw.ErrorCode, desc string) {
+		fmt.Printf("%v: %v\n", err, desc)
+	})
 
+
+	if !glfw.Init() {
+		panic("Can't init glfw!")
+	}
+
+	context.initWindow()
 	gl.Init()
+	context.initGL()
+}
+
+func (context *Context) ToggleFullscreen() {
+	_, err := context.Window.GetMonitor()
+	isFullscreen := err == nil
+
+	if isFullscreen {
+		context.Config = &defaultWindowConfig
+	} else {
+		context.Config = &WindowConfig{ Fullscreen: true }
+	}
+	context.initWindow()
+	context.initGL()
+}
+
+func (context *Context) initWindow() {
+	glfw.WindowHint(glfw.Samples, 1);
+
+	var monitor *glfw.Monitor
+	var width, height int
+	var config = context.Config
+
+	if config.Fullscreen {
+		var err error
+		monitor, err = glfw.GetPrimaryMonitor()
+		if err != nil {
+			panic(err)
+		}
+		
+		mode, err := monitor.GetVideoMode()
+		width = mode.Width
+		height = mode.Height
+	} else {
+		width = config.Width
+		height = config.Height
+	}
+
+	window, err := glfw.CreateWindow(width, height, config.Title, monitor, context.Window)
+	if err != nil {
+		panic(err)
+	}
+
+	if context.Window != nil {
+		context.Window.Destroy()
+	}
+
+	context.Window = window
+
+	window.MakeContextCurrent()
+}
+
+func (context *Context) initGL() {
+	glfw.SwapInterval(0)
 
     gl.ClearColor(0.0, 0.0, 0.0, 1.0)
     gl.ClearDepth(1.0)
@@ -50,6 +129,9 @@ func (context *Context) Init() {
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	gl.Enable(gl.MULTISAMPLE)
+
+	width, height := context.Window.GetSize()
+	context.Resize(width, height)
 }
 
 
@@ -99,6 +181,7 @@ func (context *Context) FlushQueue() {
 
 	context.RenderQueue = context.RenderQueue[:0]
 
+	context.Window.SwapBuffers()
 }
 
 

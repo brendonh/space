@@ -8,26 +8,12 @@ import (
 	_ "net/http/pprof"
 
 	"space"
-
-	glfw "github.com/go-gl/glfw3"
-
 )
 
 func init() {
 	runtime.LockOSThread()
 }
 
-const (
-	Title  = "SPACE"
-	Width  = 800
-	Height = 600
-	Fullscreen = true
-)
-
-
-func errorCallback(err glfw.ErrorCode, desc string) {
-	fmt.Printf("%v: %v\n", err, desc)
-}
 
 
 func main() {
@@ -36,41 +22,7 @@ func main() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
-	glfw.SetErrorCallback(errorCallback)
-
-	if !glfw.Init() {
-		panic("Can't init glfw!")
-	}
-	defer glfw.Terminate()
-
-	glfw.WindowHint(glfw.Samples, 1);
-
-	var monitor *glfw.Monitor
-	var width, height int
-	if Fullscreen {
-		var err error
-		monitor, err = glfw.GetPrimaryMonitor()
-		if err != nil {
-			panic(err)
-		}
-		
-		mode, err := monitor.GetVideoMode()
-		width = mode.Width
-		height = mode.Height
-	} else {
-		width = Width
-		height = Height
-	}
-
-	window, err := glfw.CreateWindow(width, height, Title, monitor, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	window.MakeContextCurrent()
-
-	ml := space.NewMainloop(window)
-	ml.RenderContext.Init()
+	ml := space.NewMainloop()
 
 	initSector(ml)
 

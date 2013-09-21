@@ -4,20 +4,17 @@ import (
 )
 
 type ShipInput struct {
-	Ship *Entity
+	BaseComponent
+
 	ShipControl *ShipControl
 }
 
 func (c *ShipInput) Init() {
-	c.ShipControl = c.Ship.GetComponent("struct_shipcontrol").(*ShipControl)
+	c.ShipControl = c.Entity.GetComponent("struct_shipcontrol").(*ShipControl)
 }
 
 func (c *ShipInput) Tag() string {
-	return ""
-}
-
-func (c *ShipInput) SetEntity(e *Entity) {
-	c.Ship = e
+	return "struct_shipinput"
 }
 
 func (c *ShipInput) Priority() int {

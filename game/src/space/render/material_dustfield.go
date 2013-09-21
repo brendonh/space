@@ -1,8 +1,6 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
@@ -27,8 +25,6 @@ func GetDustMaterialID() MaterialID {
 		return id
 	}
 
-	fmt.Println("Creating dust material")
-
 	m := &DustMaterial {
 		NewBaseMaterial("starfield", 
 			ShaderSpec{ gl.VERTEX_SHADER, "dust.vert" }, 
@@ -46,8 +42,6 @@ func GetDustMaterialID() MaterialID {
 	}
 
 	m.ID = registerMaterial(m, "dust")
-
-	fmt.Println("Dust registered as ID", m.ID)
 
 	return m.ID
 }

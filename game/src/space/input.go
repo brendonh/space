@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 	"sort"
 
 	glfw "github.com/go-gl/glfw3"
@@ -100,7 +99,6 @@ func (is *InputSystem) Add(c InputComponent) {
 		}
 
 		for _, key := range keys {
-			fmt.Println("Registering action", action, c)
 			handlerSet, ok := is.handlers[key]
 			if !ok {
 				handlerSet = &KeyHandlerSet { Key: key }

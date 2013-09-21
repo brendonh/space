@@ -40,7 +40,6 @@ func (m *Mainloop) SetSector(sector *Sector) {
 func (m *Mainloop) Loop() {
 	var ticksPerSecond float64 = 60.0
 	secondsPerTick := 1.0 / ticksPerSecond
-	fmt.Println("Seconds per tick:", secondsPerTick)
 
 	width, height := m.Window.GetSize()
 	m.RenderContext.Resize(width, height)

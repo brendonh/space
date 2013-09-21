@@ -25,7 +25,7 @@ type Context struct {
 
 func NewContext() *Context {
 	context := &Context {
-		VLightDir: Vec3 { 0.0, 0.0, -1.0 },
+		VLightDir: Vec3 { 0.0, -1.0, -2.0 },
 	}
 
 	return context

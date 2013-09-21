@@ -1,8 +1,6 @@
 package render
 
 import (
-	"fmt"
-
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
@@ -31,8 +29,6 @@ func GetCubeMaterialID() MaterialID {
 		return id
 	}
 
-	fmt.Println("Creating cube material")
-
 	m := &CubeMaterial{
 		NewBaseMaterial("cube",
 			ShaderSpec{ gl.VERTEX_SHADER, "cube.vert" }, 
@@ -54,8 +50,6 @@ func GetCubeMaterialID() MaterialID {
 	}
 
 	m.ID = registerMaterial(m, "cubes")
-
-	fmt.Println("Cubes registered as ID", m.ID)
 
 	return m.ID
 }

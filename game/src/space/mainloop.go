@@ -52,8 +52,6 @@ func (m *Mainloop) Loop() {
 	prevTime := glfw.GetTime()
 	var tickAcc float64 = secondsPerTick
 
-	var tickTimes []float64
-	var frameTimes []float64
 	m.Sector.Tick()
 	
 	for !m.Window.ShouldClose() {
@@ -77,16 +75,8 @@ func (m *Mainloop) Loop() {
 		m.Camera.UpdateRenderContext(m.RenderContext, alpha)
 		m.Sector.Render(m.RenderContext, alpha)
 		m.RenderContext.FlushQueue()
-
-		tickTimes = append(tickTimes, glfw.GetTime() - now)
-
 		m.Window.SwapBuffers()
-
-		frameTimes = append(frameTimes, glfw.GetTime() - now)
 	}
-
-	m.DumpData(tickTimes, "ticks.json")
-	m.DumpData(frameTimes, "frametimes.json")
 
 }
 

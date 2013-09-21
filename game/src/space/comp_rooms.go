@@ -53,7 +53,10 @@ func (r *RoomsComponent) Update() {
 	for _, room := range r.Rooms {
 		for _, tile := range room.Tiles {
 			cubes = append(cubes, Cube{ 
-				tile.X, tile.Y, tile.Color })
+				X: tile.X, 
+				Y: tile.Y, 
+				Color: tile.Color,
+			})
 
 			cogX += tile.X
 			cogY += tile.Y

@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	"math"
 
 	"space/render"
@@ -22,13 +23,18 @@ type CubesComponent struct {
 	BaseComponent
 
 	Physics *SpacePhysics
-	MaterialID render.MaterialID
+	CubeMaterialID render.MaterialID
+	GridMaterialID render.MaterialID
 
-	buf []float32
+	verts []float32
+	edges []float32
 	cubeCount int
 
-	glBuf gl.Buffer
+	glVerts gl.Buffer
+	glEdges gl.Buffer
+
 	triCount int
+	edgeCount int
 
 	mModel Mat4
 }
@@ -36,8 +42,10 @@ type CubesComponent struct {
 func NewCubesComponent() *CubesComponent {
 	comp := &CubesComponent {
 		BaseComponent: NewBaseComponent(),
-		MaterialID: render.GetCubeMaterialID(),
-		glBuf: gl.GenBuffer(),
+		CubeMaterialID: render.GetCubeMaterialID(),
+		GridMaterialID: render.GetGridMaterialID(),
+		glVerts: gl.GenBuffer(),
+		glEdges: gl.GenBuffer(),
 		triCount: 0,
 	}
 	M4MakeScale(&comp.mModel, 0.2)
@@ -59,47 +67,55 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 	M4MulM4(&mModelView, &mPhysics, &c.mModel)
 	M4MulM4(&mModelView, &context.MView, &mModelView)
 
-	context.Enqueue(c.MaterialID, render.CubeRenderArguments{
+	context.Enqueue(c.CubeMaterialID, render.CubeRenderArguments{
 		MModelView: mModelView,
-		Verts: c.glBuf,
+		Verts: c.glVerts,
 		TriCount: c.triCount,
 	})
+
+
+	context.Enqueue(c.GridMaterialID, render.GridRenderArguments{
+		MModelView: mModelView,
+		Edges: c.glEdges,
+		EdgeCount: c.edgeCount,
+	})
+
 }
 
 var CUBE_VERTS = (3+3+3)*(3+3)*6
 
 func (c *CubesComponent) SetCubes(cubes []Cube) {
-	var start = 0
-
-	c.buf = make([]float32, CUBE_VERTS * len(cubes))
+	c.verts = make([]float32, 0, CUBE_VERTS * len(cubes))
+	c.edges = make([]float32, 0, (2 * 4) * len(cubes))
 
 	for _, cube := range cubes {
-		addCube(c.buf[start:start + CUBE_VERTS], cube)
-		start += CUBE_VERTS
+		c.addCube(cube)
 	}
+
+	fmt.Printf("Edges:", len(c.edges))
 
 	c.cubeCount = len(cubes)
 	c.RefreshGLBuffer()
 }
 
 func(c *CubesComponent) RefreshGLBuffer() {
-    c.glBuf.Bind(gl.ARRAY_BUFFER)
-    gl.BufferData(gl.ARRAY_BUFFER, len(c.buf) * 4, c.buf, gl.STATIC_DRAW)
-	
+    c.glVerts.Bind(gl.ARRAY_BUFFER)
+    gl.BufferData(gl.ARRAY_BUFFER, len(c.verts) * 4, c.verts, gl.STATIC_DRAW)
+
+	c.glEdges.Bind(gl.ARRAY_BUFFER)
+    gl.BufferData(gl.ARRAY_BUFFER, len(c.edges) * 4, c.edges, gl.STATIC_DRAW)
+
 	c.triCount = 12 * c.cubeCount
+	c.edgeCount = 4 * c.cubeCount
 }
 
 func (c *CubesComponent) OnGLInit(args interface{}) {
 	c.RefreshGLBuffer()
 }
 
-func addCube(buf []float32, cube Cube) {
-    var bufOffset = 0
-	var nextSlot = func() []float32 {
-		start := bufOffset
-		bufOffset += (3+3+3) * (3+3)
-		return buf[start:bufOffset]
-	}
+
+
+func (c *CubesComponent) addCube(cube Cube) {
 
     // Front
 	var q Quat
@@ -111,28 +127,32 @@ func addCube(buf []float32, cube Cube) {
 	var pos = Vec3{ float32(cube.X), float32(cube.Y), 0 }
 	var color = Vec3 { cube.Color.R, cube.Color.G, cube.Color.B }
 
-    addFace(nextSlot(), q, pos, Vec3 {0.0, 0.0, -1.0}, color)
+    c.addFace(q, pos, Vec3 {0.0, 0.0, -1.0}, color)
 
     // Right
 	QRotAng(&q, math.Pi / 2, yAxis)
-    addFace(nextSlot(), q, pos, Vec3 {1.0, 0.0, 0.0}, color)
+    c.addFace(q, pos, Vec3 {1.0, 0.0, 0.0}, color)
 
     // Back
 	QRotAng(&q, math.Pi, yAxis)
-    addFace(nextSlot(), q, pos, Vec3 {0.0, 0.0, 1.0}, color)
+    c.addFace(q, pos, Vec3 {0.0, 0.0, 1.0}, color)
 
     // Left
 	QRotAng(&q, -math.Pi/2, yAxis)
-    addFace(nextSlot(), q, pos, Vec3 {-1.0, 0.0, 0.0}, color)
+    c.addFace(q, pos, Vec3 {-1.0, 0.0, 0.0}, color)
 
     // Top
 	QRotAng(&q, math.Pi / 2, xAxis)
-    addFace(nextSlot(), q, pos, Vec3 {0.0, -1.0, 0.0}, color)
+    c.addFace(q, pos, Vec3 {0.0, -1.0, 0.0}, color)
 
     // Bottom
 	QRotAng(&q, -math.Pi / 2, xAxis)
-    addFace(nextSlot(), q, pos, Vec3 {0.0, 1.0, 0.0}, color)
+    c.addFace(q, pos, Vec3 {0.0, 1.0, 0.0}, color)
+
+	// Edges
+	c.addEdges(pos)
 }
+
 
 
 var vertVecs = []Vec3 {
@@ -144,29 +164,37 @@ var vertVecs = []Vec3 {
 	Vec3 { -1.0, -1.0,  1.0 },
 }
 
-func addFace(buf []float32, rot Quat, pos Vec3, normal Vec3, color Vec3) {
-	var bufOffset = 0
+func (c *CubesComponent) addFace(rot Quat, pos Vec3, normal Vec3, color Vec3) {
 	for _, v := range vertVecs {
 		var temp Mat3
 		QMat3(&temp, rot)
 		M3MulV3(&v, &temp, v)
-		
-		// Vert
-		buf[bufOffset + 0] = round(v[0]) + pos[0]
-		buf[bufOffset + 1] = round(v[1]) + pos[1]
-		buf[bufOffset + 2] = round(v[2]) + pos[2]
-		
-		// Normal
-		buf[bufOffset + 3] = normal[0]
-		buf[bufOffset + 4] = normal[1]
-		buf[bufOffset + 5] = normal[2]
-		
-		// Color
-		buf[bufOffset + 6] = color[0]
-		buf[bufOffset + 7] = color[1]
-		buf[bufOffset + 8] = color[2]
 
-		bufOffset += 9
+		c.verts = append(c.verts, 
+			round(v[0]) + pos[0], 
+			round(v[1]) + pos[1], 
+			round(v[2]) + pos[2])
+
+		c.verts = append(c.verts, normal[0], normal[1], normal[2])
+		c.verts = append(c.verts, color[0], color[1], color[2])
+	}
+}
+
+var edgeVecs = []Vec3 {
+	Vec3 {  1.0,  1.0, 1.001 },
+	Vec3 {  1.0, -1.0, 1.001 },
+	Vec3 {  1.0, -1.0, 1.001 },
+	Vec3 { -1.0, -1.0, 1.001 },
+	Vec3 { -1.0, -1.0, 1.001 },
+	Vec3 { -1.0,  1.0, 1.001 },
+	Vec3 { -1.0,  1.0, 1.001 },
+	Vec3 {  1.0,  1.0, 1.001 },
+}
+
+func (c *CubesComponent) addEdges(pos Vec3) {
+	for _, v := range edgeVecs {
+		V3Add(&v, pos, v)
+		c.edges = append(c.edges, v[0], v[1], v[2])
 	}
 }
 

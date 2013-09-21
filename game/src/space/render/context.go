@@ -77,7 +77,7 @@ func (context *Context) ToggleFullscreen() {
 }
 
 func (context *Context) initWindow() {
-	glfw.WindowHint(glfw.Samples, 1);
+	glfw.WindowHint(glfw.Samples, 1)
 
 	var monitor *glfw.Monitor
 	var width, height int

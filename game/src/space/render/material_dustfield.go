@@ -66,29 +66,19 @@ func (dm *DustMaterial) Cleanup() {
 	dm.DisableAttribs()
 }
 
+type DustArguments struct {
+	Corner Vec3
+	Count int
+}
 
 // XXX TODO: Parameterize
 func (dm *DustMaterial) Render(args interface{}) {
-	var camPos = args.(Vec3)
-
-	startX := floorMod(camPos[0], 5.0)
-	startY := floorMod(camPos[1], 5.0)
+	var dustArgs = args.(DustArguments)
+	var corner = dustArgs.Corner
 
 	uBasePosition := dm.UniformLocations[DustUnif_vBasePosition]
 
-	for x := startX - 5; x <= startX + 5; x += 5 {
-		for y := startY - 5; y <= startY + 5; y += 5 {
-			uBasePosition.Uniform3f(float32(x), float32(y), -2.5)
-			gl.DrawArraysInstanced(gl.POINTS, 0, 1, 20)
-		}
-	}
+	uBasePosition.Uniform3f(corner[0], corner[1], corner[2])
+	gl.DrawArraysInstanced(gl.POINTS, 0, 1, dustArgs.Count)
 }
 
-
-func floorMod (val, quot float32) int {
-	q := val / quot
-	if val <= 0 {
-		q -= 1
-	}
-	return int(q) * int(quot)
-}

@@ -33,8 +33,7 @@ func NewCubesComponent() *CubesComponent {
 	comp := &CubesComponent {
 		MaterialID: render.GetCubeMaterialID(),
 		verts: gl.GenBuffer(),
-		//verts: makeCubeBuffer(),
-		//count: 12,
+		count: 0,
 	}
 	M4MakeScale(&comp.mModel, 0.2)
 	return comp
@@ -167,4 +166,3 @@ func round(f float32) float32 {
 	}
 	return float32(math.Floor(float64(f) + 0.5))
 }
-    

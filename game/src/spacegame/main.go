@@ -21,7 +21,7 @@ const (
 	Title  = "SPACE"
 	Width  = 800
 	Height = 600
-	Fullscreen = false
+	Fullscreen = true
 )
 
 

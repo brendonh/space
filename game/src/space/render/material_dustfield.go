@@ -1,6 +1,8 @@
 package render
 
 import (
+	"fmt"
+
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
@@ -18,7 +20,15 @@ type DustMaterial struct {
 	starBuffer gl.Buffer
 }
 
-func NewDustMaterial() *DustMaterial {
+func GetDustMaterialID() MaterialID {
+
+	id, ok := GetMaterialID("dust")
+	if ok {
+		return id
+	}
+
+	fmt.Println("Creating dust material")
+
 	m := &DustMaterial {
 		NewBaseMaterial("starfield", 
 			ShaderSpec{ gl.VERTEX_SHADER, "dust.vert" }, 
@@ -35,7 +45,11 @@ func NewDustMaterial() *DustMaterial {
 		DustUnif_vCenterPosition: m.GetUniformLocation("uCenterPosition"),
 	}
 
-	return m
+	m.ID = registerMaterial(m, "dust")
+
+	fmt.Println("Dust registered as ID", m.ID)
+
+	return m.ID
 }
 
 

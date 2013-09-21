@@ -7,14 +7,13 @@ import (
 type Dustfield struct {
 	Entity *Entity
 	Physics *SpacePhysics
-
-	//material *render.DustMaterial
+	MaterialID render.MaterialID
 }
 
 
 func NewDustfield() *Dustfield {
 	return &Dustfield {
-		//material: render.NewDustfieldMaterial(),
+		MaterialID: render.GetDustMaterialID(),
 	}
 }
 
@@ -31,13 +30,5 @@ func (s *Dustfield) SetEntity(e *Entity) {
 }
 
 func (s *Dustfield) Render(context *render.Context, alpha float64) {
-	
-	// Temp
-	mat := render.NewDustMaterial()
-	mat.Prepare(context)
-	mat.Render(context.VCamPos)
-	mat.Cleanup()
-
-	// s.material.Render(
-	// 	&context.MPerspective, &context.MView, context.VCamPos)
+	context.Enqueue(s.MaterialID, context.VCamPos)
 }

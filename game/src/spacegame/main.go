@@ -43,12 +43,13 @@ func main() {
 	}
 	defer glfw.Terminate()
 
-	glfw.WindowHint(glfw.Samples, 2);
+	glfw.WindowHint(glfw.Samples, 1);
 
 	var monitor *glfw.Monitor
 	var width, height int
 	if Fullscreen {
-		monitor, err := glfw.GetPrimaryMonitor()
+		var err error
+		monitor, err = glfw.GetPrimaryMonitor()
 		if err != nil {
 			panic(err)
 		}

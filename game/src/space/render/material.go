@@ -2,26 +2,43 @@ package render
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/go-gl/gl"
 )
 
-type MaterialID uint64
+type MaterialID int64
 
-var lastMaterialID MaterialID
+var materials []Material
+var materialsByName map[string]Material
 
-func getMaterialID() MaterialID {
-	if (lastMaterialID == math.MaxUint64) {
-		panic("Ran out of IDs!")
+func init() {
+	materialsByName = make(map[string]Material)
+}
+
+func registerMaterial(m Material, name string) MaterialID {
+	materials = append(materials, m)
+
+	_, ok := materialsByName[name]
+	if ok {
+		panic("Duplicate material name: " + name)
 	}
-	lastMaterialID++
-	return lastMaterialID
+
+	materialsByName[name] = m
+	return MaterialID(len(materials) - 1)
+}
+
+func GetMaterialID(name string) (MaterialID, bool) {
+	m, ok := materialsByName[name]
+	if !ok {
+		return 0, false
+	}
+	return m.GetID(), true
 }
 
 // ----------------------------------------------
 
 type Material interface {
+	GetID() MaterialID
 	Prepare(*Context)
 	Cleanup()
 
@@ -42,11 +59,13 @@ func NewBaseMaterial(shaderTag string, shaderSpecs... ShaderSpec) *BaseMaterial 
 	}
 
 	return &BaseMaterial {
-		ID: getMaterialID(),
 		Program: program,
 	}
 }
 
+func (m *BaseMaterial) GetID() MaterialID {
+	return m.ID
+}
 
 func (m *BaseMaterial) GetAttribLocation(name string) gl.AttribLocation {
 	loc := m.Program.GetAttribLocation(name)

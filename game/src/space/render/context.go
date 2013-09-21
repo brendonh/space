@@ -2,6 +2,7 @@ package render
 
 import (
 	"math"
+	"sort"
 
 	. "github.com/brendonh/glvec"
 
@@ -17,6 +18,8 @@ type Context struct {
 	MView Mat4
 
 	VLightDir Vec3
+
+	RenderQueue RenderQueue
 }
 
 
@@ -29,7 +32,7 @@ func NewContext() *Context {
 }
 
 func (context *Context) Init() {
-	glfw.SwapInterval(1)
+	glfw.SwapInterval(0)
 
 	gl.Init()
 
@@ -60,3 +63,63 @@ func (context *Context) Resize(width, height int) {
 func (context *Context) StartFrame() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
+
+func (context *Context) Enqueue(materialID MaterialID, args interface{}) {
+	context.RenderQueue = append(context.RenderQueue, RenderQueueEntry {
+		MaterialID: materialID,
+		Args: args,
+	})
+}
+
+func (context *Context) FlushQueue() {
+	var matID MaterialID = -1
+	var mat Material = nil
+
+	sort.Sort(context.RenderQueue)
+
+	for _, entry := range context.RenderQueue {
+
+		if entry.MaterialID != matID {
+			if matID != -1 {
+				mat.Cleanup()
+			}
+
+			mat = materials[entry.MaterialID]
+			mat.Prepare(context)
+
+			matID = entry.MaterialID
+		}
+
+		mat.Render(entry.Args)
+	}
+
+	if matID != -1 {
+		mat.Cleanup()
+	}
+
+	context.RenderQueue = context.RenderQueue[:0]
+
+}
+
+
+// --------------------------------------
+
+type RenderQueueEntry struct {
+	MaterialID MaterialID
+	Args interface{}
+}
+
+type RenderQueue []RenderQueueEntry
+
+func (q RenderQueue) Len() int {
+	return len(q)
+}
+
+func (q RenderQueue) Less(i, j int) bool {
+	return q[i].MaterialID < q[j].MaterialID
+}
+
+func (q RenderQueue) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+

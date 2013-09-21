@@ -1,6 +1,8 @@
 package render
 
 import (
+	"fmt"
+
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
@@ -22,7 +24,14 @@ type CubeMaterial struct {
 }
 
 
-func NewCubeMaterial() *CubeMaterial {
+func GetCubeMaterialID() MaterialID {
+
+	id, ok := GetMaterialID("cubes")
+	if ok {
+		return id
+	}
+
+	fmt.Println("Creating cube material")
 
 	m := &CubeMaterial{
 		NewBaseMaterial("cube",
@@ -44,7 +53,11 @@ func NewCubeMaterial() *CubeMaterial {
 		CubeUnif_mNormal: m.GetUniformLocation("uNormalMatrix"),
 	}
 
-	return m
+	m.ID = registerMaterial(m, "cubes")
+
+	fmt.Println("Cubes registered as ID", m.ID)
+
+	return m.ID
 }
 
 
@@ -52,12 +65,12 @@ func (cm *CubeMaterial) Prepare(context *Context) {
 	cm.Program.Use()
 	cm.EnableAttribs()
 
-    uPerspective := cm.UniformLocations[CubeUnif_mPerspective]
+	uPerspective := cm.UniformLocations[CubeUnif_mPerspective]
 	uPerspective.UniformMatrix4fv(false, context.MPerspective)
 
 	uLightDirection := cm.UniformLocations[CubeUnif_vLightDirection]
 	vLight := &context.VLightDir
-    uLightDirection.Uniform3f(vLight[0],vLight[1],vLight[2])
+	uLightDirection.Uniform3f(vLight[0],vLight[1],vLight[2])
 }
 
 
@@ -72,29 +85,34 @@ type CubeRenderArguments struct {
 	TriCount int
 }
 
+var CM_OFFSET_VERTICES = uintptr(0)
+var CM_OFFSET_NORMALS  = uintptr(3 * 4)
+var CM_OFFSET_COLORS   = uintptr(6 * 4)
+
+
 func (cm *CubeMaterial) Render(args interface{}) {
-	cubeArgs := args.(*CubeRenderArguments)
-
-    cubeArgs.Verts.Bind(gl.ARRAY_BUFFER)
-
-    aVertexPosition := cm.AttribLocations[CubeAttr_VertexPosition]
-    aVertexNormal := cm.AttribLocations[CubeAttr_VertexNormal]
-    aVertexColor := cm.AttribLocations[CubeAttr_VertexColor]
-
-    aVertexPosition.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(0))
-    aVertexNormal.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(3 * 4))
-    aVertexColor.AttribPointer(3, gl.FLOAT, false, 9 * 4, uintptr(6 * 4))
-
-    uModelView := cm.UniformLocations[CubeUnif_mModelView]
+	cubeArgs := args.(CubeRenderArguments)
+	
+	cubeArgs.Verts.Bind(gl.ARRAY_BUFFER)
+	
+	aVertexPosition := cm.AttribLocations[CubeAttr_VertexPosition]
+	aVertexNormal := cm.AttribLocations[CubeAttr_VertexNormal]
+	aVertexColor := cm.AttribLocations[CubeAttr_VertexColor]
+	
+	aVertexPosition.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_VERTICES)
+	aVertexNormal.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_NORMALS)
+	aVertexColor.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_COLORS)
+	
+	uModelView := cm.UniformLocations[CubeUnif_mModelView]
 	uModelView.UniformMatrix4fv(false, cubeArgs.MModelView)
-
+	
 	var mMVN Mat3
 	M4RotationMatrix(&mMVN, &cubeArgs.MModelView)
-
+	
 	uNormal := cm.UniformLocations[CubeUnif_mNormal]
-    uNormal.UniformMatrix3fv(false, mMVN)
-
-    gl.DrawArrays(gl.TRIANGLES, 0, cubeArgs.TriCount * 3)
+	uNormal.UniformMatrix3fv(false, mMVN)
+	
+	gl.DrawArrays(gl.TRIANGLES, 0, cubeArgs.TriCount * 3)
 }
 
 

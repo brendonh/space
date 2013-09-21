@@ -39,7 +39,7 @@ func (m *Mainloop) SetSector(sector *Sector) {
 
 func (m *Mainloop) Loop() {
 	var ticksPerSecond float64 = 60.0
-	secondsPerTick := 1 / ticksPerSecond
+	secondsPerTick := 1.0 / ticksPerSecond
 	fmt.Println("Seconds per tick:", secondsPerTick)
 
 	width, height := m.Window.GetSize()
@@ -51,9 +51,9 @@ func (m *Mainloop) Loop() {
 	m.Sector.RegisterComponent(&GameControl{ Mainloop: m })
 
 	prevTime := glfw.GetTime()
-	var tickAcc float64 = 0 
+	var tickAcc float64 = secondsPerTick
 
-	var ticksPerFrame []int
+	var tickTimes []float64
 	var frameTimes []float64
 	m.Sector.Tick()
 	
@@ -77,14 +77,16 @@ func (m *Mainloop) Loop() {
 		m.RenderContext.StartFrame()
 		m.Camera.UpdateRenderContext(m.RenderContext, alpha)
 		m.Sector.Render(m.RenderContext, alpha)
+		m.RenderContext.FlushQueue()
 
-		frameTimes = append(frameTimes, glfw.GetTime() - now)
+		tickTimes = append(tickTimes, glfw.GetTime() - now)
 
 		m.Window.SwapBuffers()
 
+		frameTimes = append(frameTimes, glfw.GetTime() - now)
 	}
 
-	m.DumpData(ticksPerFrame, "ticks.json")
+	m.DumpData(tickTimes, "ticks.json")
 	m.DumpData(frameTimes, "frametimes.json")
 
 }

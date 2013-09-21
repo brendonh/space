@@ -12,6 +12,7 @@ import (
 type CubesComponent struct {
 	Entity *Entity
 	Physics *SpacePhysics
+	MaterialID render.MaterialID
 
 	verts gl.Buffer
 	count int
@@ -20,6 +21,7 @@ type CubesComponent struct {
 
 func NewCubesComponent() *CubesComponent {
 	comp := &CubesComponent {
+		MaterialID: render.GetCubeMaterialID(),
 		verts: makeCubeBuffer(),
 		count: 12,
 	}
@@ -40,23 +42,16 @@ func (c *CubesComponent) SetEntity(e *Entity) {
 }
 
 func (c *CubesComponent) Render(context *render.Context, alpha float64) {
-	var mPhysics Mat4
-	M4MulM4(&mPhysics, c.Physics.GetModelMatrix(alpha), &c.mModel)
-	M4MulM4(&mPhysics, &context.MView, &mPhysics)
+	var mModelView Mat4
+	var mPhysics = c.Physics.GetModelMatrix(alpha)
+	M4MulM4(&mModelView, &mPhysics, &c.mModel)
+	M4MulM4(&mModelView, &context.MView, &mModelView)
 
-	// Temp
-	mat := render.NewCubeMaterial()
-	mat.Prepare(context)
-	mat.Render(&render.CubeRenderArguments {
-		MModelView: mPhysics,
+	context.Enqueue(c.MaterialID, render.CubeRenderArguments{
+		MModelView: mModelView,
 		Verts: c.verts,
 		TriCount: c.count,
 	})
-	mat.Cleanup()
-
-	// render.RenderCubeMaterial(
-	// 	&context.MPerspective, &mPhysics, context.VLightDir,
-	// 	c.verts, c.count)
 }
 
 

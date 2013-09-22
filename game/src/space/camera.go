@@ -33,4 +33,6 @@ func (cam *Camera) UpdateRenderContext(context *render.Context, alpha float64) {
 
 	var up = Vec3 { 0.0, 0.0, 1.0 }
 	M4LookAt(&context.MView, context.VCamPos, center, up)
+
+	M4RotationMatrix(&context.MCamRotate, &context.MView)
 }

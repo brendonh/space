@@ -1,8 +1,6 @@
 package space
 
 import (
-	"fmt"
-
 	. "github.com/brendonh/glvec"
 )
 
@@ -50,9 +48,7 @@ func (c *ShipInput) setState(action string, onOff float64) bool {
 	case "ship_right":
 		c.ShipControl.Turn -= onOff
 	case "ship_debug_dump":
-		if onOff > 0 {
-			c.DebugDump(true)
-		}
+		// Nada
 	default:
 		return false
 	}
@@ -61,83 +57,46 @@ func (c *ShipInput) setState(action string, onOff float64) bool {
 
 
 func (c *ShipInput) HandleCursorPosition(x, y float64) bool {
-	c.DebugDump(false)
+	var worldPos = c.ScreenToWorld(x, y)
+
+	var indicator = mainloop.Sector.Entities[2]
+	var physics = indicator.GetComponent("struct_spacephysics").(*SpacePhysics)
+	physics.Position.PosX = float64(worldPos[0])
+	physics.Position.PosY = float64(worldPos[1])
+
 	return true
 }
 
 
-func (c *ShipInput) DebugDump(print bool) bool {
+func (c *ShipInput) ScreenToWorld(x, y float64) Vec3 {
 	var context = mainloop.RenderContext
 	width, height := context.Window.GetSize()
-	x, y := context.Window.GetCursorPosition()
-
-	var pInv Mat4
-	M4Inverse(&pInv, &context.MPerspective)
-
-	var vInv Mat4
-	M4Inverse(&vInv, &context.MView)
 
 	ndx := (float32(x) / float32(width)) * 2.0 - 1.0
 	ndy := 1.0 - (float32(y) / float32(height)) * 2.0
 
 	var ray = Vec4 { ndx, ndy, 0.0, 0.0 }
-	M4MulV4(&ray, &pInv, ray)
-
-	if print {
-		fmt.Println("~~~~~~~~~~~~~~~~~~~~")
-		fmt.Println("ND", ndx, ndy)
-		fmt.Println("VRay", ray)
-
-		var back Vec4
-		M4MulV4(&back, &context.MPerspective, ray)
-		fmt.Println("Back to ND", back)
-	}
+	M4MulV4(&ray, &context.MPerspectiveInverse, ray)
 
 	var rayDir = Vec3 { ray[0], ray[1], ray[2] }
 
-	var camRotate Mat3
-	M4RotationMatrix(&camRotate, &vInv)
-	M3MulV3(&rayDir, &camRotate, rayDir)
+	var camRotateInverse Mat3
+	M3Inverse(&camRotateInverse, &context.MCamRotate)
+	M3MulV3(&rayDir, &camRotateInverse, rayDir)
 	V3Normalize(&rayDir, rayDir)
 
-	if print {
-		fmt.Println("Rotated ray", rayDir)
-	}
-
 	var rayOrig = context.VCamPos
-
-	if print {
-		fmt.Println("Ray", rayOrig, rayDir)	
-	}
-
-	var camToPlane = rayOrig
-	V3Sub(&camToPlane, camToPlane, Vec3{ 0.0, 0.0, 1.0 })
-
+	var planePoint = Vec3{ 0.0, 0.0, 1.0 }
 	var normal = Vec3 { 0.0, 0.0, 1.0 }
 
+	var camToPlane Vec3
+	V3Sub(&camToPlane, rayOrig, planePoint)
+
 	var dist = -(V3Dot(camToPlane, normal)) / V3Dot(rayDir, normal)
-	
-	if print {
-		fmt.Println("Dist", dist)
-	}
 
 	var wPos Vec3
 	V3ScalarMul(&wPos, rayDir, dist)
 	V3Add(&wPos, wPos, rayOrig)
 
-	if print {
-		fmt.Println("World", wPos)
-	}
-
-	var indicator = mainloop.Sector.Entities[2]
-	var physics = indicator.GetComponent("struct_spacephysics").(*SpacePhysics)
-	physics.Position.PosX = float64(wPos[0])
-	physics.Position.PosY = float64(wPos[1])
-	
-	var prev = wPos
-	for i := 0; i < 10; i++ {
-		V3Add(&prev, prev, rayDir)
-	}
-
-	return true
+	return wPos
 }

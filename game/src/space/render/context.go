@@ -34,6 +34,9 @@ type Context struct {
 	MPerspective Mat4
 	MView Mat4
 
+	MCamRotate Mat3
+	MPerspectiveInverse Mat4
+
 	VCamPos Vec3
 	VLightDir Vec3
 }
@@ -141,6 +144,8 @@ func (context *Context) Resize(width, height int) {
 	M4Perspective(&context.MPerspective, math.Pi / 4, 
 		float32(width) / float32(height), 1.0, 100.0);
 	
+	M4Inverse(&context.MPerspectiveInverse, &context.MPerspective)
+
 	gl.Viewport(0, 0, width, height)
 }
 

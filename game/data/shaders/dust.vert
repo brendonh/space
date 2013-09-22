@@ -12,6 +12,8 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+float DUST_BOX = 10.0;
+
 void main(void) {
 
   float boxMod = mod(((3 * uBasePosition.x) +
@@ -25,14 +27,15 @@ void main(void) {
   float rand2 = rand(vec2(rand0, rand1));
   float rand3 = rand(vec2(rand0, rand2));
 
-  vec4 pos = vec4( uBasePosition.x + rand1 * 5,
-                   uBasePosition.y + rand2 * 5,
-                   uBasePosition.z + rand3 * 5,
+  vec4 pos = vec4( uBasePosition.x + rand1 * DUST_BOX,
+                   uBasePosition.y + rand2 * DUST_BOX,
+                   uBasePosition.z + rand3 * DUST_BOX,
                    1.0 );
 
   gl_Position = uPerspective * uView * pos;
   gl_PointSize = rand(vec2(rand3, 0.0)) * 3.0;
 
-  float alpha = max(0.0, length(uCenterPosition.xy - pos.xy) / 5.0);
-  vColor = vec4(1.0, 1.0, 1.0, 1 - alpha);
+  float alpha = max(0.0, length(uCenterPosition.xy - pos.xy) / DUST_BOX);
+  //vColor = vec4(1.0, 1.0, 1.0, 1 - alpha);
+  vColor = vec4(1.0, 1.0, 1.0, 1.0 - (alpha * 0.0001));
 }

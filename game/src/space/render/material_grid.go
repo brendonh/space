@@ -9,6 +9,8 @@ const (
 	GridAttr_VertexPosition = iota
 	GridUnif_mPerspective
 	GridUnif_mModelView
+	GridUnif_bActive
+	GridUnif_vActiveCoords
 )
 
 type GridMaterial struct {
@@ -37,6 +39,8 @@ func GetGridMaterialID() MaterialID {
 	m.UniformLocations = []gl.UniformLocation {
 		GridUnif_mPerspective: m.GetUniformLocation("uPerspective"),
 		GridUnif_mModelView: m.GetUniformLocation("uModelView"),
+		GridUnif_bActive: m.GetUniformLocation("uActive"),
+		GridUnif_vActiveCoords: m.GetUniformLocation("uActiveCoords"),
 	}
 
 	m.ID = registerMaterial(m, "grid")
@@ -52,8 +56,8 @@ func (m *GridMaterial) Prepare(context *Context) {
 	uPerspective := m.UniformLocations[GridUnif_mPerspective]
 	uPerspective.UniformMatrix4fv(false, context.MPerspective)
 
-	gl.Disable(gl.LINE_SMOOTH)
-	gl.LineWidth(2)
+	gl.Enable(gl.LINE_SMOOTH)
+	gl.LineWidth(3)
 }
 
 
@@ -66,6 +70,7 @@ type GridRenderArguments struct {
 	MModelView Mat4
 	Edges gl.Buffer
 	EdgeCount int
+	Active []int
 }
 
 func (m *GridMaterial) Render(args interface{}) {
@@ -80,7 +85,18 @@ func (m *GridMaterial) Render(args interface{}) {
 	uModelView := m.UniformLocations[GridUnif_mModelView]
 	uModelView.UniformMatrix4fv(false, gridArgs.MModelView)
 
-	gl.DrawArrays(gl.LINES, 0, gridArgs.EdgeCount * 2)
+	uActive := m.UniformLocations[GridUnif_bActive]
+	uActiveCoords := m.UniformLocations[GridUnif_vActiveCoords]
+
+	var active = gridArgs.Active
+	if active == nil {
+		uActive.Uniform1i(0)
+	} else {
+		uActive.Uniform1i(1)
+		uActiveCoords.Uniform2i(active[0], active[1])
+	}
+
+	gl.DrawArrays(gl.LINES, 0, gridArgs.EdgeCount * 6)
 }
 
 

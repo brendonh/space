@@ -50,6 +50,10 @@ func (s *Sector) RegisterComponent(c Component) {
 	if c, ok := c.(InputComponent); ok {
 		s.Input.Add(c)
 	}
+
+	if c, ok := c.(MouseComponent); ok {
+		s.Input.AddMouse(c)
+	}
 }
 
 func (s *Sector) Tick() {

@@ -19,6 +19,8 @@ type Mainloop struct {
 	restart bool
 }
 
+var mainloop *Mainloop
+
 func NewMainloop() *Mainloop {
 	loop := &Mainloop {
 		RenderContext: render.NewContext(),
@@ -31,6 +33,10 @@ func NewMainloop() *Mainloop {
 	loop.RenderContext.Init()
 	loop.PrepareWindow()
 	return loop
+}
+
+func (m *Mainloop) MakeGlobal() {
+	mainloop = m
 }
 
 func (m *Mainloop) PrepareWindow() {
@@ -62,6 +68,9 @@ func (m *Mainloop) Loop() {
 		prevTime = now
 		
 		glfw.PollEvents()
+
+		mx, my := m.RenderContext.Window.GetCursorPosition()
+		m.Sector.Input.TickCursor(mx, my)
 		
 		for ; tickAcc >= secondsPerTick; tickAcc -= secondsPerTick {
 			m.Sector.Tick()

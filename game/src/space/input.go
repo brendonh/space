@@ -3,6 +3,8 @@ package space
 import (
 	"sort"
 
+	"space/render"
+
 	glfw "github.com/go-gl/glfw3"
 )
 
@@ -15,6 +17,7 @@ var KEYS = map[string][]glfw.Key {
 	"ship_decel": []glfw.Key { glfw.KeyDown, glfw.KeyS },
 	"ship_left": []glfw.Key { glfw.KeyLeft, glfw.KeyA },
 	"ship_right": []glfw.Key { glfw.KeyRight, glfw.KeyD },
+	"ship_debug_dump": []glfw.Key { glfw.KeyZ },
 }
 
 
@@ -24,6 +27,11 @@ type InputComponent interface {
 	Actions() []string
 	KeyDown(string) bool
 	KeyUp(string)
+}
+
+type MouseComponent interface {
+	Component
+	HandleCursorPosition(x, y float64) bool
 }
 
 
@@ -81,8 +89,12 @@ func (s *KeyHandlerSet) Less(i, j int) bool {
 // ------------------
 
 type InputSystem struct {
+	context *render.Context
+
 	handlers map[glfw.Key]*KeyHandlerSet
 	active map[glfw.Key]InputComponent
+
+	cursorHandlers []MouseComponent
 }
 
 func NewInputSystem() *InputSystem {
@@ -115,4 +127,19 @@ func (is *InputSystem) Add(c InputComponent) {
 
 func (is *InputSystem) HandleKey(key glfw.Key, action glfw.Action, mods glfw.ModifierKey) {
 	is.handlers[key].Dispatch(action)
+}
+
+
+func (is *InputSystem) AddMouse(c MouseComponent) {
+	is.cursorHandlers = append(is.cursorHandlers, c)
+}
+
+
+// XXX TODO: Handle out-of-window via CursorEnterCallback
+func (is *InputSystem) TickCursor(x, y float64) {
+	for _, c := range is.cursorHandlers {
+		if c.HandleCursorPosition(x, y) {
+			break
+		}
+	}
 }

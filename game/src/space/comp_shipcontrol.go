@@ -11,10 +11,13 @@ type ShipControl struct {
 	Thrust float64
 	Brake float64
 	Turn float64
+
+	ActiveTile []int
 }
 
 func (c *ShipControl) Init() {
 	c.Physics = c.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
+	c.ActiveTile = []int { 1.0, 0.0 }
 }
 
 func (c *ShipControl) Tag() string {

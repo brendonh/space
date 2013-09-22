@@ -30,13 +30,15 @@ func (s *Dustfield) Tag() string {
 	return "dust"
 }
 
-func (s *Dustfield) Render(context *render.Context, alpha float64) {
-	startX := floorMod(context.VCamPos[0], 5.0)
-	startY := floorMod(context.VCamPos[1], 5.0)
+var DUST_BOX = 10
 
-	for x := startX - 5; x <= startX + 5; x += 5 {
-		for y := startY - 5; y <= startY + 5; y += 5 {
-			var corner = Vec3 { float32(x), float32(y), -2.5 }
+func (s *Dustfield) Render(context *render.Context, alpha float64) {
+	startX := floorMod(context.VCamPos[0], float32(DUST_BOX))
+	startY := floorMod(context.VCamPos[1], float32(DUST_BOX))
+
+	for x := startX - DUST_BOX; x <= startX + DUST_BOX; x += DUST_BOX {
+		for y := startY - DUST_BOX; y <= startY + DUST_BOX; y += DUST_BOX {
+			var corner = Vec3 { float32(x), float32(y), float32(DUST_BOX) / 2 }
 			context.Enqueue(s.MaterialID, render.DustArguments{corner, s.Density})
 		}
 	}

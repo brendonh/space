@@ -14,7 +14,8 @@ type Camera struct {
 
 func NewCamera() *Camera {
 	return &Camera {
-		VCamTranslate: Vec3 { 0.0, 0.0, 6.0 },
+		//VCamTranslate: Vec3 { 8.0, 8.0, 8.0 },
+		VCamTranslate: Vec3 { 0.0, -10.0, 15.0 },
 	}
 }
 
@@ -30,6 +31,6 @@ func (cam *Camera) UpdateRenderContext(context *render.Context, alpha float64) {
 
 	V3Add(&context.VCamPos, center, cam.VCamTranslate)
 
-	var up = Vec3 { 0.0, 1.0, 1.0 }
+	var up = Vec3 { 0.0, 0.0, 1.0 }
 	M4LookAt(&context.MView, context.VCamPos, center, up)
 }

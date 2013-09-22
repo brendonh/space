@@ -25,12 +25,20 @@ func (e *Entity) AddComponent(c Component) {
 }
 
 func (e *Entity) GetComponent(tag string) Component {
+	var component = e.FindComponent(tag)
+	if component == nil {
+		panic(fmt.Sprintf("No such component: %s", tag))
+	}
+	return component
+}
+
+func (e *Entity) FindComponent(tag string) Component {
 	for _, c := range e.Components {
 		if c.Tag() == tag {
 			return c
 		}
 	}
-	panic(fmt.Sprintf("No such component: %s", tag))
+	return nil
 }
 
 func (e *Entity) InitComponents() {

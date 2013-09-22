@@ -40,11 +40,13 @@ type Context struct {
 
 
 func NewContext() *Context {
+	var light = Vec3 { 0.0, -1.0, -2.0 }
+	V3Normalize(&light, light)
+
 	context := &Context {
 		Config: &defaultWindowConfig,
-		VLightDir: Vec3 { 0.0, -1.0, -2.0 },
+		VLightDir: light,
 	}
-
 	return context
 }
 
@@ -125,7 +127,7 @@ func (context *Context) initGL() {
 
 	gl.Enable(gl.PROGRAM_POINT_SIZE)
 
-	gl.Enable( gl.BLEND )
+	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	gl.Enable(gl.MULTISAMPLE)
@@ -137,8 +139,8 @@ func (context *Context) initGL() {
 
 func (context *Context) Resize(width, height int) {
 	M4Perspective(&context.MPerspective, math.Pi / 4, 
-		float32(width) / float32(height), 0.1, 100.0);
-
+		float32(width) / float32(height), 1.0, 100.0);
+	
 	gl.Viewport(0, 0, width, height)
 }
 

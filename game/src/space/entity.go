@@ -47,6 +47,14 @@ func (e *Entity) InitComponents() {
 	}
 }
 
+func (e *Entity) BroadcastEvent(tag string, args interface{}) {
+	for _, c := range e.Components {
+		c.Event(tag, args)
+	}
+}
+
+// ------------------------------------------
+
 type EntityManager struct {
 	Entities map[EntityID]*Entity
 	lastID EntityID

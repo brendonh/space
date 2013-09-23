@@ -45,8 +45,8 @@ func (s *Dustfield) Render(context *render.Context, alpha float64) {
 	}
 }
 
-func (s *Dustfield) Intersects(orig Vec3, ray Vec3) (bool, float32) {
-	return false, 0.0
+func (s *Dustfield) HandleMouse(ray Ray) bool {
+	return false
 }
 
 func floorMod (val, quot float32) int {

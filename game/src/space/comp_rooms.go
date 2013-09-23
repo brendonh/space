@@ -1,6 +1,7 @@
 package space
 
 import (
+	. "github.com/brendonh/glvec"
 )
 
 type Tile struct {
@@ -28,9 +29,8 @@ func MakeSquareRoom(width, height int, color CubeColor) *Room {
 
 type RoomsComponent struct {
 	BaseComponent
-
 	Rooms []*Room
-	Cubes *CubesComponent
+	SelectedTile *Tile
 }
 
 func (r *RoomsComponent) Tag() string {
@@ -38,17 +38,33 @@ func (r *RoomsComponent) Tag() string {
 }
 
 func (r *RoomsComponent) Init() {
-	r.Cubes = r.Entity.GetComponent("cubes").(*CubesComponent)
-	r.Update()
+	r.update()
 }
 
 func (r *RoomsComponent) AddRoom(room *Room) {
 	r.Rooms = append(r.Rooms, room)
 }
 
-func (r *RoomsComponent) Update() {
+
+func (r *RoomsComponent) SetSelectedTile(x, y int) {
+	for _, room := range r.Rooms {
+		for i := range room.Tiles {
+			tile := &room.Tiles[i]
+			if tile.X == x && tile.Y == y {
+				r.SelectedTile = tile
+				break
+			}
+		}
+	}
+}
+
+func (r *RoomsComponent) ClearSelectedTile() {
+	r.SelectedTile = nil
+}
+
+func (r *RoomsComponent) update() {
 	var cubes []Cube
-	var cogX, cogY, mass int
+	var cogX, cogY, mass float32
 
 	for _, room := range r.Rooms {
 		for _, tile := range room.Tiles {
@@ -58,19 +74,17 @@ func (r *RoomsComponent) Update() {
 				Color: tile.Color,
 			})
 
-			cogX += tile.X
-			cogY += tile.Y
-			mass += 1
+			cogX += float32(tile.X)
+			cogY += float32(tile.Y)
+			mass += 1.0
 		}
 	}
 
 	cogX /= mass
 	cogY /= mass
 
-	for i := range cubes {
-		cubes[i].X -= cogX
-		cubes[i].Y -= cogY
-	}
-
-	r.Cubes.SetCubes(cubes)
+	r.Entity.BroadcastEvent("update_cubes", &CubeSet{
+		Cubes: cubes,
+		Center: Vec3{ cogX, cogY, 0 },
+	})
 }

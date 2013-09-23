@@ -118,7 +118,7 @@ func (context *Context) initWindow() {
 }
 
 func (context *Context) initGL() {
-	glfw.SwapInterval(1)
+	glfw.SwapInterval(0)
 
     gl.ClearColor(0.0, 0.0, 0.0, 1.0)
     gl.ClearDepth(1.0)

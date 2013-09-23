@@ -1,7 +1,6 @@
 package space
 
 import (
-	. "github.com/brendonh/glvec"
 )
 
 type ShipInput struct {
@@ -52,27 +51,5 @@ func (c *ShipInput) setState(action string, onOff float64) bool {
 	default:
 		return false
 	}
-	return true
-}
-
-
-func (c *ShipInput) HandleCursorPosition(x, y float64) bool {
-	var ray = mainloop.RenderContext.ScreenToWorld(x, y)
-	
-	pos, ok := ray.PlaneIntersect(Plane{
-		Point: Vec3{ 0, 0, 1 },
-		Normal: Vec3{ 0, 0, 1 },
-	})
-
-	if !ok {
-		// XXX TODO No way to hide things right now
-		pos = Vec3{ 0, 0, 10000 }
-	}
-
-	var indicator = mainloop.Sector.Entities[2]
-	var physics = indicator.GetComponent("struct_spacephysics").(*SpacePhysics)
-	physics.Position.PosX = float64(pos[0])
-	physics.Position.PosY = float64(pos[1])
-
 	return true
 }

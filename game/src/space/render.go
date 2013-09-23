@@ -47,3 +47,10 @@ func (s *RenderSystem) Render(context *render.Context, alpha float64) {
 	}
 }
 
+func (s *RenderSystem) Iterate(cb func(RenderComponent) bool) {
+	for _, c := range s.Active {
+		if cb(c) {
+			break
+		}
+	}
+}

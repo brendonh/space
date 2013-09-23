@@ -6,19 +6,19 @@ import (
 
 type Sector struct {
 	Entities map[EntityID]*Entity
-	physics *PhysicsSystem
-	logic *LogicSystem
-	render *RenderSystem
-	Input *InputSystem
+	PhysicsSystem *PhysicsSystem
+	LogicSystem *LogicSystem
+	RenderSystem *RenderSystem
+	InputSystem *InputSystem
 }
 
 func NewSector() *Sector {
 	sector := &Sector {
 		Entities: make(map[EntityID]*Entity),
-		physics: NewPhysicsSystem(),
-		logic: NewLogicSystem(),
-		render: NewRenderSystem(),
-		Input: NewInputSystem(),
+		PhysicsSystem: NewPhysicsSystem(),
+		LogicSystem: NewLogicSystem(),
+		RenderSystem: NewRenderSystem(),
+		InputSystem: NewInputSystem(),
 	}
 	sector.RegisterComponent(NewDustfield())
 	return sector
@@ -36,38 +36,34 @@ func (s *Sector) AddEntity(e *Entity) {
 
 func (s *Sector) RegisterComponent(c Component) {
 	if c, ok := c.(PhysicsComponent); ok {
-		s.physics.Add(c)
+		s.PhysicsSystem.Add(c)
 	}
 
 	if c, ok := c.(LogicComponent); ok {
-		s.logic.Add(c)
+		s.LogicSystem.Add(c)
 	}
 
 	if c, ok := c.(RenderComponent); ok {
-		s.render.Add(c)
+		s.RenderSystem.Add(c)
 	}
 
 	if c, ok := c.(InputComponent); ok {
-		s.Input.Add(c)
-	}
-
-	if c, ok := c.(MouseComponent); ok {
-		s.Input.AddMouse(c)
+		s.InputSystem.Add(c)
 	}
 }
 
 func (s *Sector) Tick() {
-	s.logic.Tick()
-	s.physics.Tick()
+	s.LogicSystem.Tick()
+	s.PhysicsSystem.Tick()
 	s.updateEntities()
 }
 
 func (s *Sector) Render(context *render.Context, alpha float64) {
-	s.render.Render(context, alpha)
+	s.RenderSystem.Render(context, alpha)
 }
 
 func (s *Sector) updateEntities() {
-	s.physics.Update()
-	s.logic.Update()
-	s.render.Update()
+	s.PhysicsSystem.Update()
+	s.LogicSystem.Update()
+	s.RenderSystem.Update()
 }

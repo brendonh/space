@@ -3,8 +3,6 @@ package space
 import (
 	"sort"
 
-	"space/render"
-
 	glfw "github.com/go-gl/glfw3"
 )
 
@@ -27,11 +25,6 @@ type InputComponent interface {
 	Actions() []string
 	KeyDown(string) bool
 	KeyUp(string)
-}
-
-type MouseComponent interface {
-	Component
-	HandleCursorPosition(x, y float64) bool
 }
 
 
@@ -89,12 +82,8 @@ func (s *KeyHandlerSet) Less(i, j int) bool {
 // ------------------
 
 type InputSystem struct {
-	context *render.Context
-
 	handlers map[glfw.Key]*KeyHandlerSet
 	active map[glfw.Key]InputComponent
-
-	cursorHandlers []MouseComponent
 }
 
 func NewInputSystem() *InputSystem {
@@ -130,16 +119,16 @@ func (is *InputSystem) HandleKey(key glfw.Key, action glfw.Action, mods glfw.Mod
 }
 
 
-func (is *InputSystem) AddMouse(c MouseComponent) {
-	is.cursorHandlers = append(is.cursorHandlers, c)
-}
-
 
 // XXX TODO: Handle out-of-window via CursorEnterCallback
-func (is *InputSystem) TickCursor(x, y float64) {
-	for _, c := range is.cursorHandlers {
-		if c.HandleCursorPosition(x, y) {
-			break
+func (is *InputSystem) UpdateMouse() {
+	x, y := mainloop.RenderContext.Window.GetCursorPosition()
+	ray := mainloop.RenderContext.ScreenToWorld(x, y)
+
+	mainloop.Sector.RenderSystem.Iterate(func(c RenderComponent) bool {
+		if c.HandleMouse(ray) {
+			return true
 		}
-	}
+		return false
+	})
 }

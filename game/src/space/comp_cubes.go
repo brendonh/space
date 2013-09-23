@@ -20,11 +20,16 @@ type Cube struct {
 	EdgeTop, EdgeRight bool
 }
 
+type CubeSet struct {
+	Cubes []Cube
+	Center Vec3
+}
+
 type CubesComponent struct {
 	BaseComponent
 
 	Physics *SpacePhysics
-	Control *ShipControl
+	Rooms *RoomsComponent
 
 	CubeMaterialID render.MaterialID
 	GridMaterialID render.MaterialID
@@ -34,17 +39,16 @@ type CubesComponent struct {
 
 	ShowEdges bool
 
+	cubes *CubeSet
+
 	verts []float32
 	edges []float32
-	cubeCount int
 
 	glVerts gl.Buffer
 	glEdges gl.Buffer
 
 	triCount int
 	edgeCount int
-
-
 }
 
 func NewCubesComponent() *CubesComponent {
@@ -63,10 +67,7 @@ func NewCubesComponent() *CubesComponent {
 
 func (c *CubesComponent) Init() {
 	c.Physics = c.Entity.GetComponent("struct_spacephysics").(*SpacePhysics)
-	var control = c.Entity.FindComponent("struct_shipcontrol")
-	if control != nil {
-		c.Control = control.(*ShipControl)
-	}
+	c.Rooms = c.Entity.GetComponent("rooms").(*RoomsComponent)
 	globalDispatch.Listen(c, "gl_init", c.OnGLInit)
 }
 
@@ -74,15 +75,24 @@ func (c *CubesComponent) Tag() string {
 	return "cubes"
 }
 
+func (c *CubesComponent) Event(tag string, args interface{}) {
+	switch(tag) {
+	case "update_cubes":
+		c.setCubes(args.(*CubeSet))
+	}
+}
+
 func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 	var mPhysics = c.Physics.GetModelMatrix(alpha)
 
 	M4MulM4(&c.MModelFrame, &mPhysics, &c.MModel)
-	M4MulM4(&c.MModelFrame, &context.MView, &c.MModelFrame)
+
+	var mModelView Mat4
+	M4MulM4(&mModelView, &context.MView, &c.MModelFrame)
 
 	if c.triCount > 0 {
 		context.Enqueue(c.CubeMaterialID, render.CubeRenderArguments{
-			MModelView: c.MModelFrame,
+			MModelView: mModelView,
 			Verts: c.glVerts,
 			TriCount: c.triCount,
 		})
@@ -90,15 +100,16 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 
 	if c.ShowEdges && c.edgeCount > 0 {
 		var active []int
-		if (c.Control != nil) {
+		var tile = c.Rooms.SelectedTile
+		if tile != nil {
 			active = []int { 
-				c.Control.ActiveTile[0] * 2,
-				c.Control.ActiveTile[1] * 2,
+				int(float32(tile.X) - c.cubes.Center[0]) * 2, 
+				int(float32(tile.Y) - c.cubes.Center[1]) * 2, 
 			}
 		}
 
 		context.Enqueue(c.GridMaterialID, render.GridRenderArguments{
-			MModelView: c.MModelFrame,
+			MModelView: mModelView,
 			Edges: c.glEdges,
 			EdgeCount: c.edgeCount,
 			Active: active,
@@ -106,26 +117,40 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 	}
 }
 
-func (c *CubesComponent) Intersects(orig Vec3, ray Vec3) (bool, float32) {
-	return false, 0.0
+func (c *CubesComponent) HandleMouse(ray Ray) bool {
+	worldPos, ok := ray.PlaneIntersect(Plane{ 
+		Point: Vec3{ 0.0, 0.0, 1.0 },
+		Normal: Vec3{ 0.0, 0.0, 1.0 },
+	})
+
+	if ok {
+		var modelInv Mat4
+		M4Inverse(&modelInv, &c.MModelFrame)
+		M4MulV3(&worldPos, &modelInv, worldPos)
+		
+		// Adjust for cube vert offset and scale
+		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
+		V3ScalarMul(&worldPos, worldPos, 0.5)
+		
+		V3Add(&worldPos, worldPos, c.cubes.Center)
+		
+		// TODO: Something other than this	
+		x := int(math.Floor(float64(worldPos[0]))) 
+		y := int(math.Floor(float64(worldPos[1])))
+		for _, cube := range c.cubes.Cubes {
+			if cube.X == x && cube.Y == y {
+				c.Rooms.SetSelectedTile(x, y)
+				return true
+			}
+		}
+	}
+
+	c.Rooms.ClearSelectedTile()
+	return false
 }
 
 var CUBE_VERTS = (3+3+3)*(3+3)*6
 
-func (c *CubesComponent) SetCubes(cubes []Cube) {
-	c.checkSides(cubes)
-
-	c.verts = c.edges[:0]
-	c.edges = c.edges[:0]
-
-	for _, cube := range cubes {
-		c.addCube(cube)
-		c.addEdges(cube)
-	}
-
-	c.cubeCount = len(cubes)
-	c.RefreshGLBuffer()
-}
 
 func(c *CubesComponent) RefreshGLBuffer() {
 	c.triCount = len(c.verts) / ((3+3+3) + (3+3))
@@ -146,6 +171,21 @@ func (c *CubesComponent) OnGLInit(args interface{}) {
 	c.RefreshGLBuffer()
 }
 
+
+func (c *CubesComponent) setCubes(cubeSet *CubeSet) {
+	c.cubes = cubeSet
+	c.checkSides(cubeSet.Cubes)
+
+	c.verts = c.edges[:0]
+	c.edges = c.edges[:0]
+
+	for _, cube := range cubeSet.Cubes {
+		c.addCube(cube, cubeSet.Center)
+		c.addEdges(cube, cubeSet.Center)
+	}
+
+	c.RefreshGLBuffer()
+}
 
 func (c *CubesComponent) checkSides(cubes []Cube) {
 	for i := range cubes {
@@ -168,15 +208,19 @@ func (c *CubesComponent) checkSides(cubes []Cube) {
 			}
 		}
 	}
-
 }
 
 
-func (c *CubesComponent) addCube(cube Cube) {
+func (c *CubesComponent) addCube(cube Cube, center Vec3) {
 	var yAxis = Vec3{ 0.0, 1.0, 0.0 }
 	var xAxis = Vec3{ 1.0, 0.0, 0.0 }
 
-	var pos = Vec3{ float32(cube.X * 2), float32(cube.Y * 2), 0 }
+	var pos = Vec3{ 
+		(float32(cube.X) - center[0]) * 2.0,
+		(float32(cube.Y) - center[1]) * 2.0, 
+		0,
+	}
+
 	var color = Vec3{ cube.Color.R, cube.Color.G, cube.Color.B }
 
 	var q Quat
@@ -240,8 +284,12 @@ func (c *CubesComponent) addFace(rot Quat, pos Vec3, normal Vec3, color Vec3) {
 var edgeVecs = []Vec3 {
 }
 
-func (c *CubesComponent) addEdges(cube Cube) {
-	var pos = Vec3{ float32(cube.X * 2), float32(cube.Y * 2), 0 }
+func (c *CubesComponent) addEdges(cube Cube, center Vec3) {
+	var pos = Vec3{ 
+		(float32(cube.X) - center[0]) * 2.0,
+		(float32(cube.Y) - center[1]) * 2.0,
+		0,
+	}
 
 	var addEdge = func(verts... Vec3) {
 		for _, v := range verts {

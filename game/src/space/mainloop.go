@@ -81,15 +81,15 @@ func (m *Mainloop) Loop() {
 		}
 
 		prevTime = now
-		
-		glfw.PollEvents()
 
-		mx, my := m.RenderContext.Window.GetCursorPosition()
-		m.Sector.Input.TickCursor(mx, my)
+		m.Sector.InputSystem.UpdateMouse()
+
+		glfw.PollEvents()
 		
 		for ; tickAcc >= secondsPerTick; tickAcc -= secondsPerTick {
 			m.Sector.Tick()
 		}
+
 		
 		var alpha = tickAcc / secondsPerTick
 		
@@ -104,7 +104,7 @@ func (m *Mainloop) Loop() {
 func (m *Mainloop) OnKey(w *glfw.Window, key glfw.Key, scancode int, 
 	action glfw.Action, mods glfw.ModifierKey) {
 	
-	m.Sector.Input.HandleKey(key, action, mods)
+	m.Sector.InputSystem.HandleKey(key, action, mods)
 }
 
 func (m *Mainloop) OnResize(w *glfw.Window, width int, height int) {

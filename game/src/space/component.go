@@ -10,8 +10,10 @@ import (
 type Component interface {
 	ID() ComponentID
 	Tag() string
-	SetEntity(*Entity)
 	Init()
+	SetEntity(*Entity)
+	GetEntity() *Entity
+	Event(tag string, args interface{})
 }
 
 type PhysicsComponent interface {
@@ -27,7 +29,7 @@ type LogicComponent interface {
 type RenderComponent interface {
 	Component
 	Render(context *render.Context, alpha float64)
-	Intersects(Vec3, Vec3) (bool, float32)
+	HandleMouse(Ray) bool
 }
 
 type PhysicalComponent interface {
@@ -56,7 +58,14 @@ func (c *BaseComponent) SetEntity(e *Entity) {
 	c.Entity = e
 }
 
+func (c *BaseComponent) GetEntity() *Entity {
+	return c.Entity
+}
+
 func (c *BaseComponent) Init() {
+}
+
+func (c *BaseComponent) Event(tag string, args interface{}) {
 }
 
 // --------------------------------------------------

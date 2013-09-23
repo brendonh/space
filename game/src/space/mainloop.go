@@ -57,14 +57,29 @@ func (m *Mainloop) Loop() {
 
 	m.Sector.RegisterComponent(&GameControl{ Mainloop: m })
 
-	prevTime := glfw.GetTime()
+	var prevTime = glfw.GetTime()
 	var tickAcc float64 = secondsPerTick
 
 	m.Sector.Tick()
 
+	var fpsCounter = 0
+	var fpsAcc = 0.0
+
 	for !context.Window.ShouldClose() {
 		now := glfw.GetTime()
-		tickAcc += (now - prevTime)
+
+		acc := (now - prevTime)
+		tickAcc += acc
+		fpsAcc += acc
+		fpsCounter++
+
+		if fpsAcc > 5 {
+			var fps = float64(fpsCounter) / fpsAcc
+			fmt.Println("FPS:", fps)
+			fpsAcc = 0.0
+			fpsCounter = 0
+		}
+
 		prevTime = now
 		
 		glfw.PollEvents()

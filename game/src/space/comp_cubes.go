@@ -30,6 +30,7 @@ type CubesComponent struct {
 	GridMaterialID render.MaterialID
 
 	MModel Mat4
+	MModelFrame Mat4
 
 	ShowEdges bool
 
@@ -74,14 +75,14 @@ func (c *CubesComponent) Tag() string {
 }
 
 func (c *CubesComponent) Render(context *render.Context, alpha float64) {
-	var mModelView Mat4
 	var mPhysics = c.Physics.GetModelMatrix(alpha)
-	M4MulM4(&mModelView, &mPhysics, &c.MModel)
-	M4MulM4(&mModelView, &context.MView, &mModelView)
+
+	M4MulM4(&c.MModelFrame, &mPhysics, &c.MModel)
+	M4MulM4(&c.MModelFrame, &context.MView, &c.MModelFrame)
 
 	if c.triCount > 0 {
 		context.Enqueue(c.CubeMaterialID, render.CubeRenderArguments{
-			MModelView: mModelView,
+			MModelView: c.MModelFrame,
 			Verts: c.glVerts,
 			TriCount: c.triCount,
 		})
@@ -97,13 +98,16 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 		}
 
 		context.Enqueue(c.GridMaterialID, render.GridRenderArguments{
-			MModelView: mModelView,
+			MModelView: c.MModelFrame,
 			Edges: c.glEdges,
 			EdgeCount: c.edgeCount,
 			Active: active,
 		})
 	}
+}
 
+func (c *CubesComponent) Intersects(orig Vec3, ray Vec3) (bool, float32) {
+	return false, 0.0
 }
 
 var CUBE_VERTS = (3+3+3)*(3+3)*6

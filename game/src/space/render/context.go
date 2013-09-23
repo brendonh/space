@@ -82,7 +82,7 @@ func (context *Context) ToggleFullscreen() {
 }
 
 func (context *Context) initWindow() {
-	glfw.WindowHint(glfw.Samples, 1)
+	glfw.WindowHint(glfw.Samples, 4)
 
 	var monitor *glfw.Monitor
 	var width, height int
@@ -118,7 +118,7 @@ func (context *Context) initWindow() {
 }
 
 func (context *Context) initGL() {
-	glfw.SwapInterval(0)
+	glfw.SwapInterval(1)
 
     gl.ClearColor(0.0, 0.0, 0.0, 1.0)
     gl.ClearDepth(1.0)
@@ -188,9 +188,33 @@ func (context *Context) FlushQueue() {
 
 	context.RenderQueue = context.RenderQueue[:0]
 
+	gl.ProgramUnuse()
+
 	context.Window.SwapBuffers()
 }
 
+
+func (context *Context) ScreenToWorld(x, y float64) Ray {
+	width, height := context.Window.GetSize()
+
+	ndx := (float32(x) / float32(width)) * 2.0 - 1.0
+	ndy := 1.0 - (float32(y) / float32(height)) * 2.0
+
+	var dir4 = Vec4 { ndx, ndy, 0.0, 0.0 }
+	M4MulV4(&dir4, &context.MPerspectiveInverse, dir4)
+
+	var dir = Vec3 { dir4[0], dir4[1], dir4[2] }
+
+	var camRotateInverse Mat3
+	M3Inverse(&camRotateInverse, &context.MCamRotate)
+	M3MulV3(&dir, &camRotateInverse, dir)
+	V3Normalize(&dir, dir)
+
+	return Ray { 
+		Origin: context.VCamPos, 
+		Dir: dir,
+	}
+}
 
 // --------------------------------------
 

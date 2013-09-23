@@ -46,3 +46,4 @@ func (s *RenderSystem) Render(context *render.Context, alpha float64) {
 		c.Render(context, alpha)
 	}
 }
+

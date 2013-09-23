@@ -11,6 +11,7 @@ const (
 
 	DustUnif_vBasePosition
 	DustUnif_vCenterPosition
+	DustUnif_fDustBoxSize
 )
 
 type DustMaterial struct {
@@ -39,6 +40,7 @@ func GetDustMaterialID() MaterialID {
 
 		DustUnif_vBasePosition: m.GetUniformLocation("uBasePosition"),
 		DustUnif_vCenterPosition: m.GetUniformLocation("uCenterPosition"),
+		DustUnif_fDustBoxSize: m.GetUniformLocation("uDustBoxSize"),
 	}
 
 	m.ID = registerMaterial(m, "dust")
@@ -67,18 +69,21 @@ func (dm *DustMaterial) Cleanup() {
 }
 
 type DustArguments struct {
+	BoxSize float32
 	Corner Vec3
 	Count int
 }
 
-// XXX TODO: Parameterize
 func (dm *DustMaterial) Render(args interface{}) {
 	var dustArgs = args.(DustArguments)
 	var corner = dustArgs.Corner
 
 	uBasePosition := dm.UniformLocations[DustUnif_vBasePosition]
-
 	uBasePosition.Uniform3f(corner[0], corner[1], corner[2])
+
+	uDustBoxSize := dm.UniformLocations[DustUnif_fDustBoxSize]
+	uDustBoxSize.Uniform1f(dustArgs.BoxSize)
+
 	gl.DrawArraysInstanced(gl.POINTS, 0, 1, dustArgs.Count)
 }
 

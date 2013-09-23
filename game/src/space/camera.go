@@ -15,7 +15,7 @@ type Camera struct {
 func NewCamera() *Camera {
 	return &Camera {
 		//VCamTranslate: Vec3 { 8.0, 8.0, 8.0 },
-		VCamTranslate: Vec3 { 0.0, -10.0, 15.0 },
+		VCamTranslate: Vec3 { 0.0, -20.0, 30.0 },
 	}
 }
 

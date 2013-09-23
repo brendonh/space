@@ -30,7 +30,7 @@ func (s *Dustfield) Tag() string {
 	return "dust"
 }
 
-var DUST_BOX = 10
+var DUST_BOX = 20
 
 func (s *Dustfield) Render(context *render.Context, alpha float64) {
 	startX := floorMod(context.VCamPos[0], float32(DUST_BOX))
@@ -39,9 +39,14 @@ func (s *Dustfield) Render(context *render.Context, alpha float64) {
 	for x := startX - DUST_BOX; x <= startX + DUST_BOX; x += DUST_BOX {
 		for y := startY - DUST_BOX; y <= startY + DUST_BOX; y += DUST_BOX {
 			var corner = Vec3 { float32(x), float32(y), float32(DUST_BOX) / 2 }
-			context.Enqueue(s.MaterialID, render.DustArguments{corner, s.Density})
+			context.Enqueue(s.MaterialID, 
+				render.DustArguments{float32(DUST_BOX), corner, s.Density})
 		}
 	}
+}
+
+func (s *Dustfield) Intersects(orig Vec3, ray Vec3) (bool, float32) {
+	return false, 0.0
 }
 
 func floorMod (val, quot float32) int {

@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"space/render"
+	. "github.com/brendonh/glvec"
 )
 
 type Component interface {
@@ -26,6 +27,7 @@ type LogicComponent interface {
 type RenderComponent interface {
 	Component
 	Render(context *render.Context, alpha float64)
+	Intersects(Vec3, Vec3) (bool, float32)
 }
 
 type PhysicalComponent interface {

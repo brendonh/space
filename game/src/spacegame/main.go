@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 
 	"net/http"
@@ -36,6 +37,9 @@ func initSector(ml *space.Mainloop) {
 	ml.Sector = space.NewSector()
 
 	ship := ml.Entities.NewEntity()
+	ship.Name = "ship"
+	ml.Entities.NameEntity(ship)
+
 	ship.AddComponent(&space.SpacePhysics{
 		Position: space.SpacePosition {
 			PosX: 0.0,
@@ -53,5 +57,23 @@ func initSector(ml *space.Mainloop) {
 	ship.InitComponents()
 	ml.Sector.AddEntity(ship)
 	ml.Camera.FollowEntity(ship)
+
+	guy := ml.Entities.NewEntity()
+	guy.Name = "guy"
+	ml.Entities.NameEntity(guy)
+
+	pos := &space.AvatarPosition{
+		Position: space.SpacePosition{ 
+			PosX: 1.0,
+			PosY: 1.0,
+			Angle: math.Pi / 4,
+		},
+	}
+	guy.AddComponent(pos)
+	guy.AddComponent(space.NewAvatarRenderer())
+	guy.InitComponents()
+	ml.Sector.AddEntity(guy)
+
+	pos.AttachTo(ship)
 }
 

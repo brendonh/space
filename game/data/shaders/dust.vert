@@ -32,7 +32,7 @@ void main(void) {
                    1.0 );
 
   gl_Position = uPerspective * uView * pos;
-  gl_PointSize = rand(vec2(rand3, 0.0)) * 3.0;
+  gl_PointSize = rand(vec2(rand3, 0.0)) * 2.0;
 
   float dist = length(uCenterPosition.xy - pos.xy);
   float fade = clamp((dist / uDustBoxSize) - 0.5, 0.0, 1.0);

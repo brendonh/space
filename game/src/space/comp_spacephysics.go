@@ -23,6 +23,16 @@ type SpacePosition struct {
 	Angle float64
 }
 
+func (pos SpacePosition) InterpolateFrom(other SpacePosition, alpha float64) SpacePosition {
+	return SpacePosition {
+		PosX: other.PosX + ((pos.PosX - other.PosX) * alpha),
+		PosY: other.PosY + ((pos.PosY - other.PosY) * alpha),
+		Angle: other.Angle + ((pos.Angle - other.Angle) * alpha),
+	}
+}
+
+
+
 type SpacePhysics struct {
 	BaseComponent
 
@@ -79,19 +89,14 @@ func (c *SpacePhysics) ApplyThrust(Acc float64) {
 }
 
 func (c *SpacePhysics) InterpolatePosition(alpha float64) SpacePosition {
-	prev, pos := c.PrevPosition, c.Position
-	return SpacePosition {
-		PosX: prev.PosX + ((pos.PosX - prev.PosX) * alpha),
-		PosY: prev.PosY + ((pos.PosY - prev.PosY) * alpha),
-		Angle: prev.Angle + ((pos.Angle - prev.Angle) * alpha),
-	}
+	return c.Position.InterpolateFrom(c.PrevPosition, alpha)
 }
 
 // TODO: Make relative to reference point
 func (c *SpacePhysics) GetModelMatrix(alpha float64) Mat4 {
 	var result Mat4
 	var pos = c.InterpolatePosition(alpha)
-	M4MakeRotation(&result, float32(pos.Angle), Vec3 { 0.0, 0.0, 1.0 })
-	M4SetTransform(&result, Vec3 { float32(pos.PosX), float32(pos.PosY), 0.0 })
+	M4MakeRotation(&result, float32(pos.Angle), Vec3{ 0, 0, 1 })
+	M4SetTransform(&result, Vec3{ float32(pos.PosX), float32(pos.PosY), 0.0 })
 	return result
 }

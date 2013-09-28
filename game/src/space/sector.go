@@ -52,10 +52,29 @@ func (s *Sector) RegisterComponent(c Component) {
 	}
 }
 
+func (s *Sector) UnregisterComponent(c Component) {
+	if c, ok := c.(PhysicsComponent); ok {
+		s.PhysicsSystem.Remove(c)
+	}
+
+	if c, ok := c.(LogicComponent); ok {
+		s.LogicSystem.Remove(c)
+	}
+
+	if c, ok := c.(RenderComponent); ok {
+		s.RenderSystem.Remove(c)
+	}
+
+	if c, ok := c.(InputComponent); ok {
+		s.InputSystem.Remove(c)
+	}
+}
+
 func (s *Sector) Tick() {
 	s.LogicSystem.Tick()
-	s.PhysicsSystem.Tick()
 	s.updateEntities()
+
+	s.PhysicsSystem.Tick()
 }
 
 func (s *Sector) Render(context *render.Context, alpha float64) {

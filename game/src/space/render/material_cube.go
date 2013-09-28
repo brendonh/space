@@ -86,7 +86,7 @@ var CM_OFFSET_COLORS   = uintptr(6 * 4)
 
 func (cm *CubeMaterial) Render(args interface{}) {
 	cubeArgs := args.(CubeRenderArguments)
-	
+
 	cubeArgs.Verts.Bind(gl.ARRAY_BUFFER)
 	
 	aVertexPosition := cm.AttribLocations[CubeAttr_VertexPosition]

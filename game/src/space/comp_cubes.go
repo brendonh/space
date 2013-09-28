@@ -9,22 +9,6 @@ import (
 	. "github.com/brendonh/glvec"
 )
 
-type CubeColor struct {
-	R, G, B float32
-}
-
-type Cube struct {
-	X, Y int
-	Color CubeColor
-	Top, Left, Bottom, Right bool
-	EdgeTop, EdgeRight bool
-}
-
-type CubeSet struct {
-	Cubes []Cube
-	Center Vec3
-}
-
 type CubesComponent struct {
 	BaseComponent
 
@@ -52,7 +36,7 @@ type CubesComponent struct {
 }
 
 func NewCubesComponent() *CubesComponent {
-	comp := &CubesComponent {
+	comp := &CubesComponent{
 		BaseComponent: NewBaseComponent(),
 		CubeMaterialID: render.GetCubeMaterialID(),
 		GridMaterialID: render.GetGridMaterialID(),
@@ -103,8 +87,8 @@ func (c *CubesComponent) Render(context *render.Context, alpha float64) {
 		var tile = c.Rooms.SelectedTile
 		if tile != nil {
 			active = []int { 
-				int(float32(tile.X) - c.cubes.Center[0]) * 2, 
-				int(float32(tile.Y) - c.cubes.Center[1]) * 2, 
+				int(float32(tile.X) + c.cubes.Center[0]) * 2, 
+				int(float32(tile.Y) + c.cubes.Center[1]) * 2, 
 			}
 		}
 
@@ -132,7 +116,7 @@ func (c *CubesComponent) HandleMouse(ray Ray) bool {
 		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
 		V3ScalarMul(&worldPos, worldPos, 0.5)
 		
-		V3Add(&worldPos, worldPos, c.cubes.Center)
+		V3Sub(&worldPos, worldPos, c.cubes.Center)
 		
 		// TODO: Something other than this	
 		x := int(math.Floor(float64(worldPos[0]))) 
@@ -180,8 +164,8 @@ func (c *CubesComponent) setCubes(cubeSet *CubeSet) {
 	c.edges = c.edges[:0]
 
 	for _, cube := range cubeSet.Cubes {
-		c.addCube(cube, cubeSet.Center)
-		c.addEdges(cube, cubeSet.Center)
+		c.verts = addCubeFaces(c.verts, cube, cubeSet.Center)
+		c.edges = addCubeEdges(c.edges, cube, cubeSet.Center)
 	}
 
 	c.RefreshGLBuffer()
@@ -191,135 +175,20 @@ func (c *CubesComponent) checkSides(cubes []Cube) {
 	for i := range cubes {
 		cube := &cubes[i]
 		x, y := cube.X, cube.Y
-		cube.Top = true
-		cube.Left = true
-		cube.Bottom = true
-		cube.Right = true
+		cube.Faces = CubeFacesAll()
 		for _, prev := range cubes {
 			px, py := prev.X, prev.Y
 			if px == x && py == y + 1 {
-				cube.Top = false
+				cube.Faces.Unset(CUBE_TOP)
 			} else if px == x - 1 && py == y {
-				cube.Left = false
+				cube.Faces.Unset(CUBE_LEFT)
 			} else if px == x && py == y - 1 {
-				cube.Bottom = false
+				cube.Faces.Unset(CUBE_BOTTOM)
 			} else if px == x + 1 && py == y {
-				cube.Right = false
-			}
+				cube.Faces.Unset(CUBE_RIGHT)			}
 		}
 	}
 }
 
 
-func (c *CubesComponent) addCube(cube Cube, center Vec3) {
-	var yAxis = Vec3{ 0.0, 1.0, 0.0 }
-	var xAxis = Vec3{ 1.0, 0.0, 0.0 }
 
-	var pos = Vec3{ 
-		(float32(cube.X) - center[0]) * 2.0,
-		(float32(cube.Y) - center[1]) * 2.0, 
-		0,
-	}
-
-	var color = Vec3{ cube.Color.R, cube.Color.G, cube.Color.B }
-
-	var q Quat
-
-	// Front
-	QIdent(&q)
-    c.addFace(q, pos, Vec3 {0.0, 0.0, -1.0}, color)
-
-    // Back
-	QRotAng(&q, math.Pi, yAxis)
-    c.addFace(q, pos, Vec3 {0.0, 0.0, 1.0}, color)
-
-	if cube.Top {
-		QRotAng(&q, math.Pi / 2, xAxis)
-		c.addFace(q, pos, Vec3 {0.0, -1.0, 0.0}, color)
-	}
-
-	if cube.Left {
-		QRotAng(&q, math.Pi / 2, yAxis)
-		c.addFace(q, pos, Vec3 {1.0, 0.0, 0.0}, color)
-	}
-
-	if cube.Bottom {
-		QRotAng(&q, -math.Pi / 2, xAxis)
-		c.addFace(q, pos, Vec3 {0.0, 1.0, 0.0}, color)
-	}
-
-	if cube.Right {
-		QRotAng(&q, -math.Pi/2, yAxis)
-		c.addFace(q, pos, Vec3 {-1.0, 0.0, 0.0}, color)
-	}
-}
-
-
-
-var vertVecs = []Vec3 {
-	Vec3 {  1.0,  1.0,  1.0 },
-	Vec3 { -1.0,  1.0,  1.0 },
-	Vec3 {  1.0, -1.0,  1.0 },
-	Vec3 {  1.0, -1.0,  1.0 },
-	Vec3 { -1.0,  1.0,  1.0 },
-	Vec3 { -1.0, -1.0,  1.0 },
-}
-
-func (c *CubesComponent) addFace(rot Quat, pos Vec3, normal Vec3, color Vec3) {
-	for _, v := range vertVecs {
-		var temp Mat3
-		QMat3(&temp, rot)
-		M3MulV3(&v, &temp, v)
-
-		c.verts = append(c.verts, 
-			round(v[0]) + pos[0], 
-			round(v[1]) + pos[1], 
-			round(v[2]) + pos[2])
-
-		c.verts = append(c.verts, normal[0], normal[1], normal[2])
-		c.verts = append(c.verts, color[0], color[1], color[2])
-	}
-}
-
-var edgeVecs = []Vec3 {
-}
-
-func (c *CubesComponent) addEdges(cube Cube, center Vec3) {
-	var pos = Vec3{ 
-		(float32(cube.X) - center[0]) * 2.0,
-		(float32(cube.Y) - center[1]) * 2.0,
-		0,
-	}
-
-	var addEdge = func(verts... Vec3) {
-		for _, v := range verts {
-			var nv Vec3
-			V3Add(&nv, pos, v)
-			c.edges = append(c.edges, nv[0], nv[1], nv[2])
-		}
-	}
-
-	// Top
-	if cube.Top {
-		addEdge(Vec3 { -1.0,  1.0, 1.001 }, Vec3 {  1.0,  1.0, 1.001 })
-	}
-	
-	// Left
-	addEdge(Vec3 {  -1.0,  1.0, 1.001 }, Vec3 {  -1.0, -1.0, 1.001 })
-
-	// Bottom
-	addEdge(Vec3 { -1.0, -1.0, 1.001 }, Vec3 { 1.0, -1.0, 1.001 })
-
-	// Right
-	if cube.Right {
-		addEdge(Vec3 { 1.0,  1.0, 1.001 }, Vec3 { 1.0, -1.0, 1.001 })
-	}
-
-}
-
-func round(f float32) float32 {
-	if f < 0 {
-		return float32(math.Ceil(float64(f) - 0.5))
-	}
-	return float32(math.Floor(float64(f) + 0.5))
-}

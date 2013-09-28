@@ -85,6 +85,6 @@ func (r *RoomsComponent) update() {
 
 	r.Entity.BroadcastEvent("update_cubes", &CubeSet{
 		Cubes: cubes,
-		Center: Vec3{ cogX, cogY, 0 },
+		Center: Vec3{ -cogX, -cogY, 0 },
 	})
 }

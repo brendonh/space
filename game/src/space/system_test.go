@@ -8,7 +8,12 @@ import (
 )
 
 type TestComponent struct {
+	BaseComponent
 	Name string
+}
+
+func (c *TestComponent) Tag() string {
+	return "test"
 }
 
 func (c *TestComponent) TickPhysics() {

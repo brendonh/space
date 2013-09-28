@@ -47,7 +47,17 @@ func (c *ShipInput) setState(action string, onOff float64) bool {
 	case "ship_right":
 		c.ShipControl.Turn -= onOff
 	case "ship_debug_dump":
-		// Nada
+		if onOff > 0 {
+			guy := mainloop.Entities.GetNamedEntity("guy")
+			pos := guy.GetComponent("struct_avatarposition").(*AvatarPosition)
+			if pos.Attached() {
+				pos.Detach()
+			} else {
+				ship := mainloop.Entities.GetNamedEntity("ship")
+				pos.AttachTo(ship)
+			}
+
+		}
 	default:
 		return false
 	}

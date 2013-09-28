@@ -44,6 +44,16 @@ func (s *KeyHandlerSet) Add(handler *KeyHandler) {
 	sort.Sort(s)
 }
 
+func (s *KeyHandlerSet) RemoveComponent(c InputComponent) {
+	for i, h := range s.handlers {
+		if c == h.Handler {
+			var hs = s.handlers
+			hs[len(hs)-1], hs[i], hs = nil, hs[len(hs)-1], hs[:len(hs)-1]
+			s.handlers = hs
+		}
+	}
+}
+
 func (s *KeyHandlerSet) Dispatch(action glfw.Action) {
 	if s == nil {
 		return
@@ -110,6 +120,23 @@ func (is *InputSystem) Add(c InputComponent) {
 				Handler: c,
 				Action: action,
 			})
+		}
+	}
+}
+
+func (is *InputSystem) Remove(c InputComponent) {
+	for _, action := range c.Actions() {
+		keys, ok := KEYS[action]
+		if !ok {
+			panic("Unregistering unknown input action: " + action)
+		}
+
+		for _, key := range keys {
+			handlerSet, ok := is.handlers[key]
+			if !ok {
+				continue
+			}
+			handlerSet.RemoveComponent(c)
 		}
 	}
 }

@@ -43,6 +43,7 @@ func (m *Mainloop) PrepareWindow() {
 	var context = m.RenderContext
 	context.Window.SetFramebufferSizeCallback(m.OnResize)
 	context.Window.SetKeyCallback(m.OnKey)
+	context.Window.SetMouseButtonCallback(m.OnMouse)
 }
 
 func (m *Mainloop) SetSector(sector *Sector) {
@@ -105,6 +106,11 @@ func (m *Mainloop) OnKey(w *glfw.Window, key glfw.Key, scancode int,
 	action glfw.Action, mods glfw.ModifierKey) {
 	
 	m.Sector.InputSystem.HandleKey(key, action, mods)
+}
+
+func (m *Mainloop) OnMouse(w *glfw.Window, button glfw.MouseButton, 
+	action glfw.Action, mods glfw.ModifierKey) {
+	m.Sector.InputSystem.HandleMouse(button, action, mods)
 }
 
 func (m *Mainloop) OnResize(w *glfw.Window, width int, height int) {

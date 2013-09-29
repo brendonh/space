@@ -28,11 +28,7 @@ func NewAvatarRenderer() *AvatarRenderer {
 		CubeMaterialID: render.GetCubeMaterialID(),
 	}
 
-	//M4MakeScale(&comp.MModel, 0.5)
-	M4Ident(&comp.MModel)
-	comp.MModel[0] = 0.5
-	comp.MModel[5] = 1.0
-	comp.MModel[10] = 0.5
+	M4MakeScale(&comp.MModel, 0.5)
 
 	M4SetTransform(&comp.MModel, Vec3{ 0, 0, 1 })
 	

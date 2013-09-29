@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 )
 
 type ShipInput struct {
@@ -24,12 +25,30 @@ func (c *ShipInput) Priority() int {
 func (c *ShipInput) Actions() []string {
 	return []string {
 		"ship_accel", "ship_decel", "ship_left", "ship_right", 
+		"mouse_activate",
 		"ship_debug_dump",
 	}
 }
 
 func (c *ShipInput) KeyDown(action string) bool {
-	return c.setState(action, 1)
+	switch action {
+	case "mouse_activate":
+		fmt.Println("Click!")
+
+	case "ship_debug_dump":
+		guy := mainloop.Entities.GetNamedEntity("guy")
+		pos := guy.GetComponent("struct_avatarposition").(*AvatarPosition)
+		if pos.Attached() {
+			pos.Detach()
+		} else {
+			ship := mainloop.Entities.GetNamedEntity("ship")
+			pos.AttachTo(ship)
+		}
+	default:
+		return c.setState(action, 1)
+	}
+
+	return true
 }
 
 func (c *ShipInput) KeyUp(action string) {
@@ -46,18 +65,6 @@ func (c *ShipInput) setState(action string, onOff float64) bool {
 		c.ShipControl.Turn += onOff
 	case "ship_right":
 		c.ShipControl.Turn -= onOff
-	case "ship_debug_dump":
-		if onOff > 0 {
-			guy := mainloop.Entities.GetNamedEntity("guy")
-			pos := guy.GetComponent("struct_avatarposition").(*AvatarPosition)
-			if pos.Attached() {
-				pos.Detach()
-			} else {
-				ship := mainloop.Entities.GetNamedEntity("ship")
-				pos.AttachTo(ship)
-			}
-
-		}
 	default:
 		return false
 	}

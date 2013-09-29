@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"runtime"
 
 	"net/http"
@@ -62,13 +61,7 @@ func initSector(ml *space.Mainloop) {
 	guy.Name = "guy"
 	ml.Entities.NameEntity(guy)
 
-	pos := &space.AvatarPosition{
-		Position: space.SpacePosition{ 
-			PosX: 1.0,
-			PosY: 1.0,
-			Angle: math.Pi / 4,
-		},
-	}
+	pos := &space.AvatarPosition{}
 	guy.AddComponent(pos)
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()

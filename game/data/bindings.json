@@ -1,0 +1,12 @@
+{
+	"fullscreen": [ "F" ],
+	"quit_game": [ "Escape" ],
+
+	"ship_accel": [ "Up", "W" ],
+	"ship_decel": [ "Down", "S" ],
+	"ship_left": [ "Left", "A" ],
+	"ship_right": [ "Right", "D" ],
+	"ship_debug_dump": [ "Z" ],
+
+    "mouse_activate": [ "Mouse1" ]
+}

@@ -112,28 +112,33 @@ func (c *CubesComponent) HandleMouse(ray Ray) bool {
 		M4Inverse(&modelInv, &c.MModelFrame)
 		M4MulV3(&worldPos, &modelInv, worldPos)
 		
-		// Adjust for cube vert offset and scale
 		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
-		V3ScalarMul(&worldPos, worldPos, 0.5)
-		
-		V3Sub(&worldPos, worldPos, c.cubes.Center)
-		
-		// TODO: Something other than this	
-		x := int(math.Floor(float64(worldPos[0]))) 
-		y := int(math.Floor(float64(worldPos[1])))
-		for _, cube := range c.cubes.Cubes {
-			if cube.X == x && cube.Y == y {
-				c.Rooms.SetSelectedTile(x, y)
-				return true
-			}
-		}
+
+		x, y := c.ModelToTile(worldPos)
+		return c.Rooms.SetSelectedTile(x, y)
 	}
 
 	c.Rooms.ClearSelectedTile()
 	return false
 }
 
-var CUBE_VERTS = (3+3+3)*(3+3)*6
+
+func (c *CubesComponent) ModelToTile(worldPos Vec3) (x, y int) {
+	V3ScalarMul(&worldPos, worldPos, 0.5)
+	
+	V3Sub(&worldPos, worldPos, c.cubes.Center)
+	
+	x = int(math.Floor(float64(worldPos[0]))) 
+	y = int(math.Floor(float64(worldPos[1])))
+	return
+}
+
+func (c *CubesComponent) TileToModel(x, y int) (worldPos Vec3) {
+	worldPos = Vec3 { float32(x), float32(y), 0 }
+	V3Add(&worldPos, worldPos, c.cubes.Center)
+	V3ScalarMul(&worldPos, worldPos, 2)
+	return
+}
 
 
 func(c *CubesComponent) RefreshGLBuffer() {
@@ -185,7 +190,8 @@ func (c *CubesComponent) checkSides(cubes []Cube) {
 			} else if px == x && py == y - 1 {
 				cube.Faces.Unset(CUBE_BOTTOM)
 			} else if px == x + 1 && py == y {
-				cube.Faces.Unset(CUBE_RIGHT)			}
+				cube.Faces.Unset(CUBE_RIGHT)			
+			}
 		}
 	}
 }

@@ -45,7 +45,8 @@ func initSector(ml *space.Mainloop) {
 			PosY: 0.0,
 		},
 	})
-	ship.AddComponent(space.NewCubesComponent())
+	cubes := space.NewCubesComponent()
+	ship.AddComponent(cubes)
 	ship.AddComponent(&space.ShipControl{})
 	ship.AddComponent(&space.ShipInput{})
 
@@ -61,7 +62,13 @@ func initSector(ml *space.Mainloop) {
 	guy.Name = "guy"
 	ml.Entities.NameEntity(guy)
 
-	pos := &space.AvatarPosition{}
+	worldPos := cubes.TileToModel(2, 1)
+	pos := &space.AvatarPosition{
+		Position: space.SpacePosition {
+			PosX: float64(worldPos[0]),
+			PosY: float64(worldPos[1]),
+		},
+	}
 	guy.AddComponent(pos)
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()

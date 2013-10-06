@@ -46,16 +46,19 @@ func (r *RoomsComponent) AddRoom(room *Room) {
 }
 
 
-func (r *RoomsComponent) SetSelectedTile(x, y int) {
+func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
+	// TODO: Something other than this	
 	for _, room := range r.Rooms {
 		for i := range room.Tiles {
 			tile := &room.Tiles[i]
 			if tile.X == x && tile.Y == y {
 				r.SelectedTile = tile
-				break
+				return true
 			}
 		}
 	}
+	r.ClearSelectedTile()
+	return false
 }
 
 func (r *RoomsComponent) ClearSelectedTile() {

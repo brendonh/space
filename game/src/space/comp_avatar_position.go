@@ -62,14 +62,14 @@ func (p *AvatarPosition) Detach() {
 	p.Physics = &phys
 }
 
-func (p *AvatarPosition) GetModelMatrix(alpha float64) Mat4 {
+func (p *AvatarPosition) GetModelMatrix(alpha float32) Mat4 {
 	spacePos := p.Physics.GetModelMatrix(alpha)
 
 	pos := p.Position.InterpolateFrom(p.PrevPosition, alpha)
 
 	var groundPos Mat4
 	M4MakeRotation(&groundPos, float32(pos.Angle), Vec3{ 0, 0, 1 })
-	M4SetTransform(&groundPos, Vec3{ float32(pos.PosX), float32(pos.PosY), 0.0 })
+	M4SetTransform(&groundPos, pos.Pos)
 
 	M4MulM4(&groundPos, &spacePos, &groundPos)
 
@@ -77,19 +77,17 @@ func (p *AvatarPosition) GetModelMatrix(alpha float64) Mat4 {
 }
 
 
-func (p *AvatarPosition) positionToPhysics(position *SpacePosition, alpha float64) {
+func (p *AvatarPosition) positionToPhysics(position *SpacePosition, alpha float32) {
 	var spaceMat = p.GetModelMatrix(alpha)
-	var spacePos = M4GetTransform(&spaceMat)
-	position.PosX = float64(spacePos[0])
-	position.PosY = float64(spacePos[1])
-	position.Angle = math.Atan2(float64(spaceMat[1]), float64(spaceMat[0]))
+	position.Pos = M4GetTransform(&spaceMat)
+	position.Angle = float32(math.Atan2(float64(spaceMat[1]), float64(spaceMat[0])))
 }
 
 
 func (p *AvatarPosition) physicsToPosition(
 	oldPhysics, newPhysics *SpacePhysics,
 	position *SpacePosition,
-	alpha float64) {
+	alpha float32) {
 
 	var oldMat = oldPhysics.GetModelMatrix(alpha)
 	var oldPos = M4GetTransform(&oldMat)
@@ -105,10 +103,9 @@ func (p *AvatarPosition) physicsToPosition(
 
 	M3MulV3(&offset, &invRotation, offset)
 
-	position.PosX += float64(offset[0])
-	position.PosY += float64(offset[1])
+	V3Add(&position.Pos, position.Pos, offset)
 
 	oldAngle := math.Atan2(float64(oldMat[1]), float64(oldMat[0]))
 	newAngle := math.Atan2(float64(newMat[1]), float64(newMat[0]))
-	position.Angle = oldAngle - newAngle
+	position.Angle = float32(oldAngle - newAngle)
 }

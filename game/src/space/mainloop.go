@@ -92,7 +92,7 @@ func (m *Mainloop) Loop() {
 		}
 
 		
-		var alpha = tickAcc / secondsPerTick
+		var alpha = float32(tickAcc / secondsPerTick)
 		
 		m.RenderContext.StartFrame()
 		m.Camera.UpdateRenderContext(m.RenderContext, alpha)

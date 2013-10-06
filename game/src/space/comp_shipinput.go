@@ -55,7 +55,7 @@ func (c *ShipInput) KeyUp(action string) {
 	c.setState(action, -1)
 }
 
-func (c *ShipInput) setState(action string, onOff float64) bool {
+func (c *ShipInput) setState(action string, onOff float32) bool {
 	switch action {
 	case "ship_accel":
 		c.ShipControl.Thrust += onOff

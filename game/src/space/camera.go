@@ -23,16 +23,14 @@ func (cam *Camera) FollowEntity(e *Entity) {
 	cam.FollowPhysics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
 }
 
-func (cam *Camera) UpdateRenderContext(context *render.Context, alpha float64) {
+func (cam *Camera) UpdateRenderContext(context *render.Context, alpha float32) {
 	var phys = cam.FollowPhysics
 	var pos = phys.InterpolatePosition(alpha)
 	
-	var center = Vec3 { float32(pos.PosX), float32(pos.PosY), 0.0 }
-
-	V3Add(&context.VCamPos, center, cam.VCamTranslate)
+	V3Add(&context.VCamPos, pos.Pos, cam.VCamTranslate)
 
 	var up = Vec3 { 0.0, 0.0, 1.0 }
-	M4LookAt(&context.MView, context.VCamPos, center, up)
+	M4LookAt(&context.MView, context.VCamPos, pos.Pos, up)
 
 	M4RotationMatrix(&context.MCamRotate, &context.MView)
 }

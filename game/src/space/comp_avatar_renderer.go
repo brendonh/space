@@ -45,7 +45,7 @@ func (c *AvatarRenderer) Tag() string {
 	return "avatar"
 }
 
-func (c *AvatarRenderer) Render(context *render.Context, alpha float64) {
+func (c *AvatarRenderer) Render(context *render.Context, alpha float32) {
 	var mPosition = c.Position.GetModelMatrix(alpha)
 
 	M4MulM4(&c.MModelFrame, &mPosition, &c.MModel)

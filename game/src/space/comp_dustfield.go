@@ -32,7 +32,7 @@ func (s *Dustfield) Tag() string {
 
 var DUST_BOX = 20
 
-func (s *Dustfield) Render(context *render.Context, alpha float64) {
+func (s *Dustfield) Render(context *render.Context, alpha float32) {
 	startX := floorMod(context.VCamPos[0], float32(DUST_BOX))
 	startY := floorMod(context.VCamPos[1], float32(DUST_BOX))
 

@@ -41,7 +41,7 @@ func (s *RenderSystem) Update() {
 	s.toRemove = nil
 }
 
-func (s *RenderSystem) Render(context *render.Context, alpha float64) {
+func (s *RenderSystem) Render(context *render.Context, alpha float32) {
 	for _, c := range s.Active {
 		c.Render(context, alpha)
 	}

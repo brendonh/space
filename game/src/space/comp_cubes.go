@@ -66,7 +66,7 @@ func (c *CubesComponent) Event(tag string, args interface{}) {
 	}
 }
 
-func (c *CubesComponent) Render(context *render.Context, alpha float64) {
+func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 	var mPhysics = c.Physics.GetModelMatrix(alpha)
 
 	M4MulM4(&c.MModelFrame, &mPhysics, &c.MModel)

@@ -28,7 +28,7 @@ type LogicComponent interface {
 
 type RenderComponent interface {
 	Component
-	Render(context *render.Context, alpha float64)
+	Render(context *render.Context, alpha float32)
 	HandleMouse(Ray) bool
 }
 

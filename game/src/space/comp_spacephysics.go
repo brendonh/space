@@ -8,25 +8,26 @@ import (
 
 
 type SpaceForce struct {
-	Angle float64
-	Acc float64
+	Angle float32
+	Acc float32
 }
 
-type SpaceThrust float64
+type SpaceThrust float32
 
-type SpaceRotation float64
+type SpaceRotation float32
 
 type SpacePosition struct {
-	PosX float64
-	PosY float64
-
-	Angle float64
+	Pos Vec3
+	Angle float32
 }
 
-func (pos SpacePosition) InterpolateFrom(other SpacePosition, alpha float64) SpacePosition {
+func (pos SpacePosition) InterpolateFrom(other SpacePosition, alpha float32) SpacePosition {
 	return SpacePosition {
-		PosX: other.PosX + ((pos.PosX - other.PosX) * alpha),
-		PosY: other.PosY + ((pos.PosY - other.PosY) * alpha),
+		Pos: Vec3{
+			other.Pos[0] + ((pos.Pos[0] - other.Pos[0]) * alpha),
+			other.Pos[1] + ((pos.Pos[1] - other.Pos[1]) * alpha),
+			0,
+		},
 		Angle: other.Angle + ((pos.Angle - other.Angle) * alpha),
 	}
 }
@@ -39,8 +40,8 @@ type SpacePhysics struct {
 	Position SpacePosition
 	PrevPosition SpacePosition
 
-	VelX float64
-	VelY float64
+	VelX float32
+	VelY float32
 
 	Rotations []SpaceRotation
 	Thrusts []SpaceThrust
@@ -57,46 +58,46 @@ func (c *SpacePhysics) TickPhysics() {
 	var pos = &c.Position
 
 	for _, rot := range c.Rotations {
-		pos.Angle += float64(rot)
+		pos.Angle += float32(rot)
 	}
 	c.Rotations = c.Rotations[:0]
 
 	for _, thrust := range c.Thrusts {
-		c.ApplyForce(pos.Angle, float64(thrust))
+		c.ApplyForce(pos.Angle, float32(thrust))
 	}
 	c.Thrusts = c.Thrusts[:0] 
 
 	for _, force := range c.Forces {
-		c.VelX += force.Acc * -math.Sin(force.Angle)
-		c.VelY += force.Acc * math.Cos(force.Angle)
+		c.VelX += force.Acc * -float32(math.Sin(float64(force.Angle)))
+		c.VelY += force.Acc * float32(math.Cos(float64(force.Angle)))
 	}
 	c.Forces = c.Forces[:0]
 
-	c.Position.PosX += c.VelX
-	c.Position.PosY += c.VelY
+	c.Position.Pos[0] += c.VelX
+	c.Position.Pos[1] += c.VelY
 }
 
-func (c *SpacePhysics) ApplyForce(Angle float64, Acc float64) {
+func (c *SpacePhysics) ApplyForce(Angle float32, Acc float32) {
 	c.Forces = append(c.Forces, SpaceForce{ Angle, Acc })
 }
 
-func (c *SpacePhysics) ApplyRotation(Angle float64) {
+func (c *SpacePhysics) ApplyRotation(Angle float32) {
 	c.Rotations = append(c.Rotations, SpaceRotation(Angle))
 }
 
-func (c *SpacePhysics) ApplyThrust(Acc float64) {
+func (c *SpacePhysics) ApplyThrust(Acc float32) {
 	c.Thrusts = append(c.Thrusts, SpaceThrust(Acc))
 }
 
-func (c *SpacePhysics) InterpolatePosition(alpha float64) SpacePosition {
+func (c *SpacePhysics) InterpolatePosition(alpha float32) SpacePosition {
 	return c.Position.InterpolateFrom(c.PrevPosition, alpha)
 }
 
 // TODO: Make relative to reference point
-func (c *SpacePhysics) GetModelMatrix(alpha float64) Mat4 {
+func (c *SpacePhysics) GetModelMatrix(alpha float32) Mat4 {
 	var result Mat4
 	var pos = c.InterpolatePosition(alpha)
 	M4MakeRotation(&result, float32(pos.Angle), Vec3{ 0, 0, 1 })
-	M4SetTransform(&result, Vec3{ float32(pos.PosX), float32(pos.PosY), 0.0 })
+	M4SetTransform(&result, pos.Pos)
 	return result
 }

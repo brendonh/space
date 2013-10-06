@@ -77,7 +77,7 @@ func (s *Sector) Tick() {
 	s.PhysicsSystem.Tick()
 }
 
-func (s *Sector) Render(context *render.Context, alpha float64) {
+func (s *Sector) Render(context *render.Context, alpha float32) {
 	s.RenderSystem.Render(context, alpha)
 }
 

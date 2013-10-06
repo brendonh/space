@@ -8,9 +8,9 @@ type ShipControl struct {
 	BaseComponent
 
 	Physics *SpacePhysics
-	Thrust float64
-	Brake float64
-	Turn float64
+	Thrust float32
+	Brake float32
+	Turn float32
 }
 
 func (c *ShipControl) Init() {
@@ -30,13 +30,13 @@ func (c *ShipControl) TickLogic() {
 	if (c.Brake > 0.005) {
 		x, y := physics.VelX, physics.VelY
 		
-		dir := math.Atan2(x, -y)
+		dir := math.Atan2(float64(x), -float64(y))
 
-		force := math.Sqrt(x*x + y*y)
+		force := math.Sqrt(float64(x*x + y*y))
 		if force > 0.001 {
 			force = math.Min(force, 0.0001)
 		}
 
-		physics.ApplyForce(dir, force)
+		physics.ApplyForce(float32(dir), float32(force))
 	}
 }

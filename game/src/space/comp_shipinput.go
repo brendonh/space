@@ -34,6 +34,13 @@ func (c *ShipInput) KeyDown(action string) bool {
 	switch action {
 	case "mouse_activate":
 		fmt.Println("Click!")
+		
+		x, y := mainloop.RenderContext.Window.GetCursorPosition()
+		ray := mainloop.RenderContext.ScreenToWorld(x, y)
+
+		mainloop.Sector.RenderSystem.Iterate(func(c RenderComponent) bool {
+			return c.HandleMouse(ray, MOUSE_PRESS)
+		})
 
 	case "ship_debug_dump":
 		guy := mainloop.Entities.GetNamedEntity("guy")

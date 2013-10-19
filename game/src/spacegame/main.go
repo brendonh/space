@@ -54,6 +54,8 @@ func initSector(ml *space.Mainloop) {
 	rooms.AddRoom(space.MakeSquareRoom(-4, 0, 4, 2, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
 	ship.AddComponent(rooms)
 
+	ship.AddComponent(&space.CrewComponent{})
+
 	ship.InitComponents()
 	ml.Sector.AddEntity(ship)
 	ml.Camera.FollowEntity(ship)
@@ -62,17 +64,12 @@ func initSector(ml *space.Mainloop) {
 	guy.Name = "guy"
 	ml.Entities.NameEntity(guy)
 
-	worldPos := cubes.TileToModel(2, 1)
-	pos := &space.AvatarPosition{
-		Position: space.SpacePosition {
-			Pos: worldPos,
-		},
-	}
+	pos := &space.AvatarPosition{}
 	guy.AddComponent(pos)
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
 
-	pos.AttachTo(ship)
+	pos.AttachToShipPosition(ship, space.Vec2i{ 1, 2 })
 }
 

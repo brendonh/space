@@ -108,7 +108,7 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 	}
 }
 
-func (c *CubesComponent) HandleMouse(ray Ray) bool {
+func (c *CubesComponent) HandleMouse(ray Ray, action MouseAction) bool {
 	worldPos, ok := ray.PlaneIntersect(Plane{ 
 		Point: Vec3{ 0.0, 0.0, 1.0 },
 		Normal: Vec3{ 0.0, 0.0, 1.0 },
@@ -122,7 +122,15 @@ func (c *CubesComponent) HandleMouse(ray Ray) bool {
 		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
 
 		shipPos := c.ModelToTile(worldPos)
-		return c.Rooms.SetSelectedTile(shipPos)
+		if !c.Rooms.SetSelectedTile(shipPos) {
+			return false
+		}
+
+		if action == MOUSE_PRESS {
+			c.Rooms.TriggerSelectedTile()
+		}
+
+		return true		
 	}
 
 	c.Rooms.ClearSelectedTile()
@@ -139,13 +147,6 @@ func (c *CubesComponent) ModelToTile(worldPos Vec3) Vec2i {
 		int(math.Floor(float64(worldPos[0]))),
 		int(math.Floor(float64(worldPos[1]))),
 	}
-}
-
-func (c *CubesComponent) TileToModel(x, y int) (worldPos Vec3) {
-	worldPos = Vec3 { float32(x), float32(y), 0 }
-	V3Add(&worldPos, worldPos, c.cubes.Center)
-	V3ScalarMul(&worldPos, worldPos, 2)
-	return
 }
 
 

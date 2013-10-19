@@ -29,7 +29,7 @@ type LogicComponent interface {
 type RenderComponent interface {
 	Component
 	Render(context *render.Context, alpha float32)
-	HandleMouse(Ray) bool
+	HandleMouse(Ray, MouseAction) bool
 }
 
 type PhysicalComponent interface {

@@ -45,7 +45,7 @@ func (s *Dustfield) Render(context *render.Context, alpha float32) {
 	}
 }
 
-func (s *Dustfield) HandleMouse(ray Ray) bool {
+func (s *Dustfield) HandleMouse(ray Ray, action MouseAction) bool {
 	return false
 }
 

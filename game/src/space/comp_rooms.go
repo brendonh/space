@@ -10,6 +10,7 @@ type RoomsComponent struct {
 	Rooms []*Room
 	Grid TileGrid
 	SelectedTile *Tile
+	Center Vec3
 }
 
 func (r *RoomsComponent) Tag() string {
@@ -42,7 +43,6 @@ func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
 	if (selection != r.SelectedTile) {
 		r.SelectedTile = selection
 		shipPos := tile.GetShipPos()
-		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile)
 		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride {
 			CubeColorOverride{ shipPos.X, shipPos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } },
 		})
@@ -57,6 +57,17 @@ func (r *RoomsComponent) ClearSelectedTile() {
 		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile)
 		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})
 	}
+}
+
+func (r *RoomsComponent) TriggerSelectedTile() {
+	r.Entity.BroadcastEvent("trigger_tile", r.SelectedTile)
+}
+
+func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
+	worldPos = Vec3 { float32(pos.X), float32(pos.Y), 0 }
+	V3Add(&worldPos, worldPos, r.Center)
+	V3ScalarMul(&worldPos, worldPos, 2) // Oof
+	return
 }
 
 
@@ -83,8 +94,10 @@ func (r *RoomsComponent) update() {
 	cogX /= mass
 	cogY /= mass
 
+	r.Center = Vec3{ -cogX, -cogY, 0 }
+
 	r.Entity.BroadcastEvent("update_cubes", &CubeSet{
 		Cubes: cubes,
-		Center: Vec3{ -cogX, -cogY, 0 },
+		Center: r.Center,
 	})
 }

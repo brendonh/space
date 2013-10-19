@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	"math"
 
 	. "github.com/brendonh/glvec"
@@ -8,13 +9,14 @@ import (
 
 type AvatarPosition struct {
 	BaseComponent
+	Crew *CrewComponent
 	Physics *SpacePhysics
+	Rooms *RoomsComponent
 
 	ShipPosition Vec2i
 	Position SpacePosition
 	PrevPosition SpacePosition
 }
-
 
 func (p *AvatarPosition) Tag() string {
 	return "struct_avatarposition"
@@ -25,11 +27,21 @@ func (p *AvatarPosition) TickPhysics() {
 	// ...
 }
 
+func (p *AvatarPosition) Event(tag string, args interface{}) {
+	switch(tag) {
+	case "move_to":
+		p.MoveTo(args.(*Tile))
+	}
+}
+
 func (p *AvatarPosition) Attached() bool {
 	return p.Physics.Entity != p.Entity
 }
 
 func (p *AvatarPosition) AttachTo(e *Entity) {
+	p.Crew = e.GetComponent("crew").(*CrewComponent)
+	p.Rooms = e.GetComponent("rooms").(*RoomsComponent)
+
 	oldPhysics := p.Physics
 	newPhysics := e.GetComponent("struct_spacephysics").(*SpacePhysics)
 
@@ -42,6 +54,22 @@ func (p *AvatarPosition) AttachTo(e *Entity) {
 		p.physicsToPosition(oldPhysics, newPhysics, &p.Position, 1)
 	}
 	p.Physics = newPhysics
+
+	p.Crew.Add(p.Entity)
+}
+
+func (p *AvatarPosition) AttachToShipPosition(e *Entity, pos Vec2i) {
+	p.Crew = e.GetComponent("crew").(*CrewComponent)
+	p.Rooms = e.GetComponent("rooms").(*RoomsComponent)
+	p.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
+
+	p.ShipPosition = pos
+
+	modelPos := p.Rooms.TileToModel(pos)
+	p.Position = SpacePosition{ modelPos, 0 }
+	p.PrevPosition = p.Position
+
+	p.Crew.Add(p.Entity)
 }
 
 func (p *AvatarPosition) Detach() {
@@ -61,6 +89,14 @@ func (p *AvatarPosition) Detach() {
 	}
 	p.Entity.AddComponent(&phys)
 	p.Physics = &phys
+
+	p.Rooms = nil
+	p.Crew.Remove(p.Entity)
+	p.Crew = nil
+}
+
+func (p *AvatarPosition) MoveTo(tile *Tile) {
+	fmt.Println("Moving to", tile)
 }
 
 func (p *AvatarPosition) GetModelMatrix(alpha float32) Mat4 {

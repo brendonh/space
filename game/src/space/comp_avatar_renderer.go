@@ -63,7 +63,7 @@ func (c *AvatarRenderer) Render(context *render.Context, alpha float32) {
 	
 }
 
-func (c *AvatarRenderer) HandleMouse(Ray) bool {
+func (c *AvatarRenderer) HandleMouse(Ray, MouseAction) bool {
 	return false
 }
 

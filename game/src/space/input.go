@@ -15,10 +15,19 @@ const (
 	INPUT_MOUSE
 )
 
+type MouseAction uint8
+
+const (
+	MOUSE_HOVER MouseAction = iota
+	MOUSE_PRESS
+	MOUSE_RELEASE
+)
+
 type Input struct {
 	Type uint8
 	Input int
 }
+
 
 
 type InputComponent interface {
@@ -162,10 +171,7 @@ func (is *InputSystem) UpdateMouse() {
 	ray := mainloop.RenderContext.ScreenToWorld(x, y)
 
 	mainloop.Sector.RenderSystem.Iterate(func(c RenderComponent) bool {
-		if c.HandleMouse(ray) {
-			return true
-		}
-		return false
+		return c.HandleMouse(ray, MOUSE_HOVER)
 	})
 }
 

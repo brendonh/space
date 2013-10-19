@@ -50,12 +50,15 @@ type TileGrid struct {
 func (g *TileGrid) idx(x, y int) int {
 	x += g.OffsetX
 	y += g.OffsetY
+	if x < 0 || y < 0 {
+		return -1
+	}
 	return (y * g.ExtentX) + x
 }
 
 func (g *TileGrid) Get(x, y int) *Tile {
 	idx := g.idx(x, y)
-	if idx < 0 || idx > len(g.Grid) {
+	if idx < 0 || idx >= len(g.Grid) {
 		return nil
 	}
 	return g.Grid[idx]

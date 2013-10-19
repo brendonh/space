@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	. "github.com/brendonh/glvec"
 )
 
@@ -27,18 +28,27 @@ func (r *RoomsComponent) AddRoom(room *Room) {
 
 
 func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
+	var selection *Tile
+
 	var tile = r.Grid.Get(x, y)
 	if tile != nil {
-		r.SelectedTile = tile
-		return true
+		selection = tile
 	}
-	r.ClearSelectedTile()
-	return false
+
+	if (selection != r.SelectedTile) {
+		fmt.Println("Selection update", x, y, selection)
+		r.SelectedTile = selection
+	}
+	return selection != nil
 }
 
 func (r *RoomsComponent) ClearSelectedTile() {
-	r.SelectedTile = nil
+	if r.SelectedTile != nil {
+		fmt.Println("Selection clear")
+		r.SelectedTile = nil
+	}
 }
+
 
 func (r *RoomsComponent) update() {
 	var cubes []Cube

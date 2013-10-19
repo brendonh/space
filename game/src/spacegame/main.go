@@ -49,9 +49,9 @@ func initSector(ml *space.Mainloop) {
 	ship.AddComponent(&space.ShipInput{})
 
 	rooms := &space.RoomsComponent{}
-	rooms.AddRoom(space.MakeSquareRoom(0, 0, 3, 5, space.CubeColor{ 1.0, 1.0, 0.3 }))
-	rooms.AddRoom(space.MakeSquareRoom(3, 0, 4, 2, space.CubeColor{ 1.0, 0.5, 1.0 }))
-	rooms.AddRoom(space.MakeSquareRoom(-4, 0, 4, 2, space.CubeColor{ 1.0, 1.0, 0.5 }))
+	rooms.AddRoom(space.MakeSquareRoom(0, 0, 3, 5, space.CubeColor{ 1.0, 1.0, 0.3, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(3, 0, 4, 2, space.CubeColor{ 1.0, 0.5, 1.0, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(-4, 0, 4, 2, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
 	ship.AddComponent(rooms)
 
 	ship.InitComponents()

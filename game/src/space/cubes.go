@@ -46,7 +46,7 @@ func (cf *CubeFaces) Count() (count int) {
 
 
 type CubeColor struct {
-	R, G, B float32
+	R, G, B, A float32
 }
 
 type Cube struct {

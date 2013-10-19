@@ -26,9 +26,11 @@ type CubesComponent struct {
 	cubes *CubeSet
 
 	verts []float32
+	colors []float32
 	edges []float32
 
 	glVerts gl.Buffer
+	glColors gl.Buffer
 	glEdges gl.Buffer
 
 	triCount int
@@ -42,6 +44,7 @@ func NewCubesComponent() *CubesComponent {
 		GridMaterialID: render.GetGridMaterialID(),
 		ShowEdges: true,
 		glVerts: gl.GenBuffer(),
+		glColors: gl.GenBuffer(),
 		glEdges: gl.GenBuffer(),
 		triCount: 0,
 	}
@@ -78,6 +81,7 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 		context.Enqueue(c.CubeMaterialID, render.CubeRenderArguments{
 			MModelView: mModelView,
 			Verts: c.glVerts,
+			Colors: c.glColors,
 			TriCount: c.triCount,
 		})
 	}
@@ -143,12 +147,15 @@ func (c *CubesComponent) TileToModel(x, y int) (worldPos Vec3) {
 
 
 func(c *CubesComponent) RefreshGLBuffer() {
-	c.triCount = len(c.verts) / ((3+3+3) + (3+3))
+	c.triCount = len(c.verts) / (3 * (3 + 3))
 	c.edgeCount = len(c.edges) / 3
 
 	if c.triCount > 0 {
 		c.glVerts.Bind(gl.ARRAY_BUFFER)
 		gl.BufferData(gl.ARRAY_BUFFER, len(c.verts) * 4, c.verts, gl.STATIC_DRAW)
+
+		c.glColors.Bind(gl.ARRAY_BUFFER)
+		gl.BufferData(gl.ARRAY_BUFFER, len(c.colors) * 4, c.colors, gl.DYNAMIC_DRAW)
 	}
 
 	if c.edgeCount > 0 {
@@ -166,11 +173,13 @@ func (c *CubesComponent) setCubes(cubeSet *CubeSet) {
 	c.cubes = cubeSet
 	c.checkSides(cubeSet.Cubes)
 
-	c.verts = c.edges[:0]
+	c.verts = c.verts[:0]
+	c.colors = c.colors[:0]
 	c.edges = c.edges[:0]
 
 	for _, cube := range cubeSet.Cubes {
 		c.verts = addCubeFaces(c.verts, cube, cubeSet.Center)
+		c.colors = addCubeColors(c.colors, cube)
 		c.edges = addCubeEdges(c.edges, cube, cubeSet.Center)
 	}
 

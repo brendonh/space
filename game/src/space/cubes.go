@@ -33,6 +33,16 @@ func (cf *CubeFaces) Has(face uint8) bool {
 	return *cf & CubeFaces(face) > 0
 }
 
+func (cf *CubeFaces) Count() (count int) {
+	var face uint8
+	for face = 0; face < 6; face++ {
+		if cf.Has(1 << face) {
+			count++
+		}
+	}
+	return
+}
+
 
 
 type CubeColor struct {
@@ -63,43 +73,53 @@ func addCubeFaces(buffer []float32, cube Cube, center Vec3) []float32 {
 	V3Add(&pos, pos, center)
 	V3ScalarMul(&pos, pos, 2.0)
 
-	var color = Vec3{ cube.Color.R, cube.Color.G, cube.Color.B }
-
 	var q Quat
 
 	if cube.Faces.Has(CUBE_FRONT) {
 		QIdent(&q)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 0.0, -1.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 0.0, -1.0})
 	}
 
 	if cube.Faces.Has(CUBE_BACK) {
 		QRotAng(&q, math.Pi, yAxis)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 0.0, 1.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 0.0, 1.0})
 	}
 
 	if cube.Faces.Has(CUBE_TOP) {
 		QRotAng(&q, math.Pi / 2, xAxis)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, -1.0, 0.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, -1.0, 0.0})
 	}
 
 	if cube.Faces.Has(CUBE_LEFT) {
 		QRotAng(&q, math.Pi / 2, yAxis)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {1.0, 0.0, 0.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {1.0, 0.0, 0.0})
 	}
 
 	if cube.Faces.Has(CUBE_BOTTOM) {
 		QRotAng(&q, -math.Pi / 2, xAxis)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 1.0, 0.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {0.0, 1.0, 0.0})
 	}
 
 	if cube.Faces.Has(CUBE_RIGHT) {
 		QRotAng(&q, -math.Pi/2, yAxis)
-		buffer = addCubeFace(buffer, q, pos, Vec3 {-1.0, 0.0, 0.0}, color)
+		buffer = addCubeFace(buffer, q, pos, Vec3 {-1.0, 0.0, 0.0})
 	}
 
 	return buffer
 }
 
+
+func addCubeColors(buffer []float32, cube Cube) []float32 {
+	var color = Vec3{ cube.Color.R, cube.Color.G, cube.Color.B }
+
+	var faceCount = cube.Faces.Count()
+
+	for i := 0; i < faceCount * 6; i++ {
+		buffer = append(buffer, color[0], color[1], color[2])
+	}
+
+	return buffer
+}
 
 
 var vertVecs = []Vec3 {
@@ -111,7 +131,7 @@ var vertVecs = []Vec3 {
 	Vec3 { -1.0, -1.0,  1.0 },
 }
 
-func addCubeFace(buffer []float32, rot Quat, pos Vec3, normal Vec3, color Vec3) []float32 {
+func addCubeFace(buffer []float32, rot Quat, pos Vec3, normal Vec3) []float32 {
 	for _, v := range vertVecs {
 		var temp Mat3
 		QMat3(&temp, rot)
@@ -120,10 +140,12 @@ func addCubeFace(buffer []float32, rot Quat, pos Vec3, normal Vec3, color Vec3) 
 		buffer = append(buffer, 
 			round(v[0]) + pos[0], 
 			round(v[1]) + pos[1], 
-			round(v[2]) + pos[2])
+			round(v[2]) + pos[2],
 
-		buffer = append(buffer, normal[0], normal[1], normal[2])
-		buffer = append(buffer, color[0], color[1], color[2])
+			normal[0], 
+			normal[1], 
+			normal[2],
+		)
 	}
 	return buffer
 }

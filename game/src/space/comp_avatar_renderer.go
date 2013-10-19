@@ -16,8 +16,10 @@ type AvatarRenderer struct {
 	MModelFrame Mat4
 
 	verts []float32
+	colors []float32
 	triCount int
 	glVerts gl.Buffer
+	glColors gl.Buffer
 	CubeMaterialID render.MaterialID
 }
 
@@ -25,6 +27,7 @@ func NewAvatarRenderer() *AvatarRenderer {
 	comp := &AvatarRenderer{
 		BaseComponent: NewBaseComponent(),
 		glVerts: gl.GenBuffer(),
+		glColors: gl.GenBuffer(),
 		CubeMaterialID: render.GetCubeMaterialID(),
 	}
 
@@ -54,6 +57,7 @@ func (c *AvatarRenderer) Render(context *render.Context, alpha float32) {
 	context.Enqueue(c.CubeMaterialID, render.CubeRenderArguments{
 		MModelView: c.MModelFrame,
 		Verts: c.glVerts,
+		Colors: c.glColors,
 		TriCount: c.triCount,
 	})
 	
@@ -65,13 +69,16 @@ func (c *AvatarRenderer) HandleMouse(Ray) bool {
 
 
 func (c *AvatarRenderer) makeCube() {
-	c.verts = addCubeFaces(
-		c.verts, 
-		Cube{ 0, 0, CubeColor{ 1.0, 0.3, 0.3 }, CubeFacesAll() },
-		Vec3{ 0, 0, 0 })
+	var cube = Cube{ 0, 0, CubeColor{ 1.0, 0.3, 0.3 }, CubeFacesAll() }
 
-	c.triCount = len(c.verts) / ((3+3+3) + (3+3))
+	c.verts = addCubeFaces(c.verts, cube, Vec3{ 0, 0, 0 })
+	c.colors = addCubeColors(c.colors, cube)
+
+	c.triCount = len(c.verts) / (3 * (3+3))
 
 	c.glVerts.Bind(gl.ARRAY_BUFFER)
 	gl.BufferData(gl.ARRAY_BUFFER, len(c.verts) * 4, c.verts, gl.STATIC_DRAW)
+
+	c.glColors.Bind(gl.ARRAY_BUFFER)
+	gl.BufferData(gl.ARRAY_BUFFER, len(c.colors) * 4, c.colors, gl.STATIC_DRAW)
 }

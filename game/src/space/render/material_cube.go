@@ -76,26 +76,28 @@ func (cm *CubeMaterial) Cleanup() {
 type CubeRenderArguments struct {
 	MModelView Mat4
 	Verts gl.Buffer
+	Colors gl.Buffer
 	TriCount int
 }
 
 var CM_OFFSET_VERTICES = uintptr(0)
 var CM_OFFSET_NORMALS  = uintptr(3 * 4)
-var CM_OFFSET_COLORS   = uintptr(6 * 4)
+
+var CM_OFFSET_COLORS   = uintptr(0)
 
 
 func (cm *CubeMaterial) Render(args interface{}) {
 	cubeArgs := args.(CubeRenderArguments)
 
 	cubeArgs.Verts.Bind(gl.ARRAY_BUFFER)
-	
 	aVertexPosition := cm.AttribLocations[CubeAttr_VertexPosition]
-	aVertexNormal := cm.AttribLocations[CubeAttr_VertexNormal]
+	aVertexNormal := cm.AttribLocations[CubeAttr_VertexNormal]	
+	aVertexPosition.AttribPointer(3, gl.FLOAT, false, 6 * 4, CM_OFFSET_VERTICES)
+	aVertexNormal.AttribPointer(3, gl.FLOAT, false, 6 * 4, CM_OFFSET_NORMALS)
+
+	cubeArgs.Colors.Bind(gl.ARRAY_BUFFER)
 	aVertexColor := cm.AttribLocations[CubeAttr_VertexColor]
-	
-	aVertexPosition.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_VERTICES)
-	aVertexNormal.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_NORMALS)
-	aVertexColor.AttribPointer(3, gl.FLOAT, false, 9 * 4, CM_OFFSET_COLORS)
+	aVertexColor.AttribPointer(3, gl.FLOAT, false, 0, CM_OFFSET_COLORS)
 	
 	uModelView := cm.UniformLocations[CubeUnif_mModelView]
 	uModelView.UniformMatrix4fv(false, cubeArgs.MModelView)

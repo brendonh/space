@@ -26,10 +26,10 @@ func (r *RoomsComponent) AddRoom(room *Room) {
 }
 
 
-func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
+func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
 	var selection *Tile
 
-	var tile = r.Grid.Get(x, y)
+	var tile = r.Grid.Get(pos)
 	if tile != nil {
 		selection = tile
 	}
@@ -41,9 +41,10 @@ func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
 
 	if (selection != r.SelectedTile) {
 		r.SelectedTile = selection
-		sx, sy := tile.GetShipPos()
+		shipPos := tile.GetShipPos()
+		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile)
 		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride {
-			CubeColorOverride{ sx, sy, CubeColor{ 1.0, 0.0, 0.0, 0.5 } },
+			CubeColorOverride{ shipPos.X, shipPos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } },
 		})
 	}
 
@@ -53,6 +54,7 @@ func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
 func (r *RoomsComponent) ClearSelectedTile() {
 	if r.SelectedTile != nil {
 		r.SelectedTile = nil
+		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile)
 		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})
 	}
 }
@@ -65,13 +67,15 @@ func (r *RoomsComponent) update() {
 	for _, room := range r.Rooms {
 		for _, tile := range room.Tiles {
 			cubes = append(cubes, Cube{ 
-				X: room.X + tile.X, 
-				Y: room.Y + tile.Y, 
+				Pos: Vec2i{
+					room.Pos.X + tile.Pos.X, 
+					room.Pos.Y + tile.Pos.Y, 
+				},
 				Color: tile.Color,
 			})
 
-			cogX += float32(tile.X)
-			cogY += float32(tile.Y)
+			cogX += float32(tile.Pos.X)
+			cogY += float32(tile.Pos.Y)
 			mass += 1.0
 		}
 	}

@@ -10,6 +10,7 @@ type AvatarPosition struct {
 	BaseComponent
 	Physics *SpacePhysics
 
+	ShipPosition Vec2i
 	Position SpacePosition
 	PrevPosition SpacePosition
 }

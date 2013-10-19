@@ -48,13 +48,13 @@ type CubeColor struct {
 }
 
 type Cube struct {
-	X, Y int
+	Pos Vec2i
 	Color CubeColor
 	Faces CubeFaces
 }
 
 func (c Cube) Center() Vec3 {
-	return Vec3{ float32(c.X), float32(c.Y), 0 }
+	return Vec3{ float32(c.Pos.X), float32(c.Pos.Y), 0 }
 }
 
 type CubeSet struct {

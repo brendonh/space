@@ -92,10 +92,10 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 		var active []float32
 		var tile = c.Rooms.SelectedTile
 		if tile != nil {
-			x, y := tile.GetShipPos()
+			shipPos := tile.GetShipPos()
 			active = []float32 { 
-				(float32(x) + c.cubes.Center[0]) * 2,
-				(float32(y) + c.cubes.Center[1]) * 2, 
+				(float32(shipPos.X) + c.cubes.Center[0]) * 2,
+				(float32(shipPos.Y) + c.cubes.Center[1]) * 2, 
 			}
 		}
 
@@ -121,8 +121,8 @@ func (c *CubesComponent) HandleMouse(ray Ray) bool {
 		
 		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
 
-		x, y := c.ModelToTile(worldPos)
-		return c.Rooms.SetSelectedTile(x, y)
+		shipPos := c.ModelToTile(worldPos)
+		return c.Rooms.SetSelectedTile(shipPos)
 	}
 
 	c.Rooms.ClearSelectedTile()
@@ -130,14 +130,15 @@ func (c *CubesComponent) HandleMouse(ray Ray) bool {
 }
 
 
-func (c *CubesComponent) ModelToTile(worldPos Vec3) (x, y int) {
+func (c *CubesComponent) ModelToTile(worldPos Vec3) Vec2i {
 	V3ScalarMul(&worldPos, worldPos, 0.5)
 	
 	V3Sub(&worldPos, worldPos, c.cubes.Center)
 	
-	x = int(math.Floor(float64(worldPos[0]))) 
-	y = int(math.Floor(float64(worldPos[1])))
-	return
+	return Vec2i{
+		int(math.Floor(float64(worldPos[0]))),
+		int(math.Floor(float64(worldPos[1]))),
+	}
 }
 
 func (c *CubesComponent) TileToModel(x, y int) (worldPos Vec3) {
@@ -187,7 +188,7 @@ func (c *CubesComponent) SetColorOverrides(overrides []CubeColorOverride) {
 	for _, cube := range c.cubes.Cubes {
 		var addColor *CubeColor
 		for _, override := range overrides {
-			if cube.X == override.X && cube.Y == override.Y {
+			if cube.Pos.X == override.X && cube.Pos.Y == override.Y {
 				addColor = &override.Color
 				break
 			}
@@ -218,10 +219,10 @@ func (c *CubesComponent) setCubes(cubeSet *CubeSet) {
 func (c *CubesComponent) checkSides(cubes []Cube) {
 	for i := range cubes {
 		cube := &cubes[i]
-		x, y := cube.X, cube.Y
+		x, y := cube.Pos.X, cube.Pos.Y
 		cube.Faces = CubeFacesAll()
 		for _, prev := range cubes {
-			px, py := prev.X, prev.Y
+			px, py := prev.Pos.X, prev.Pos.Y
 			if px == x && py == y + 1 {
 				cube.Faces.Unset(CUBE_TOP)
 			} else if px == x - 1 && py == y {

@@ -69,7 +69,7 @@ func (c *AvatarRenderer) HandleMouse(Ray) bool {
 
 
 func (c *AvatarRenderer) makeCube() {
-	var cube = Cube{ 0, 0, CubeColor{ 1.0, 0.3, 0.3, 1.0 }, CubeFacesAll() }
+	var cube = Cube{ Vec2i{ 0, 0 }, CubeColor{ 1.0, 0.3, 0.3, 1.0 }, CubeFacesAll() }
 
 	c.verts = addCubeFaces(c.verts, cube, Vec3{ 0, 0, 0 })
 	c.colors = addCubeColors(c.colors, cube, nil)

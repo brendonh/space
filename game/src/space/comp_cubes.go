@@ -66,6 +66,8 @@ func (c *CubesComponent) Event(tag string, args interface{}) {
 	switch(tag) {
 	case "update_cubes":
 		c.setCubes(args.(*CubeSet))
+	case "update_colors":
+		c.SetColorOverrides(args.([]CubeColorOverride))
 	}
 }
 
@@ -153,19 +155,46 @@ func(c *CubesComponent) RefreshGLBuffer() {
 	if c.triCount > 0 {
 		c.glVerts.Bind(gl.ARRAY_BUFFER)
 		gl.BufferData(gl.ARRAY_BUFFER, len(c.verts) * 4, c.verts, gl.STATIC_DRAW)
-
-		c.glColors.Bind(gl.ARRAY_BUFFER)
-		gl.BufferData(gl.ARRAY_BUFFER, len(c.colors) * 4, c.colors, gl.DYNAMIC_DRAW)
 	}
 
 	if c.edgeCount > 0 {
 		c.glEdges.Bind(gl.ARRAY_BUFFER)
 		gl.BufferData(gl.ARRAY_BUFFER, len(c.edges) * 4, c.edges, gl.STATIC_DRAW)
 	}
+
+	c.RefreshColorBuffer()
+}
+
+func (c *CubesComponent) RefreshColorBuffer() {
+	if c.triCount > 0 {
+		c.glColors.Bind(gl.ARRAY_BUFFER)
+		gl.BufferData(gl.ARRAY_BUFFER, len(c.colors) * 4, c.colors, gl.DYNAMIC_DRAW)
+	}
 }
 
 func (c *CubesComponent) OnGLInit(args interface{}) {
 	c.RefreshGLBuffer()
+}
+
+
+type CubeColorOverride struct {
+	X, Y int
+	Color CubeColor
+}
+
+func (c *CubesComponent) SetColorOverrides(overrides []CubeColorOverride) {
+	c.colors = c.colors[:0]
+	for _, cube := range c.cubes.Cubes {
+		var addColor *CubeColor
+		for _, override := range overrides {
+			if cube.X == override.X && cube.Y == override.Y {
+				addColor = &override.Color
+				break
+			}
+		}
+		c.colors = addCubeColors(c.colors, cube, addColor)		
+	}
+	c.RefreshColorBuffer()
 }
 
 
@@ -179,7 +208,7 @@ func (c *CubesComponent) setCubes(cubeSet *CubeSet) {
 
 	for _, cube := range cubeSet.Cubes {
 		c.verts = addCubeFaces(c.verts, cube, cubeSet.Center)
-		c.colors = addCubeColors(c.colors, cube)
+		c.colors = addCubeColors(c.colors, cube, nil)
 		c.edges = addCubeEdges(c.edges, cube, cubeSet.Center)
 	}
 

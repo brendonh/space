@@ -72,7 +72,7 @@ func (c *AvatarRenderer) makeCube() {
 	var cube = Cube{ 0, 0, CubeColor{ 1.0, 0.3, 0.3, 1.0 }, CubeFacesAll() }
 
 	c.verts = addCubeFaces(c.verts, cube, Vec3{ 0, 0, 0 })
-	c.colors = addCubeColors(c.colors, cube)
+	c.colors = addCubeColors(c.colors, cube, nil)
 
 	c.triCount = len(c.verts) / (3 * (3+3))
 

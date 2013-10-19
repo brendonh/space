@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 	. "github.com/brendonh/glvec"
 )
 
@@ -35,17 +34,26 @@ func (r *RoomsComponent) SetSelectedTile(x, y int) bool {
 		selection = tile
 	}
 
+	if selection == nil {
+		r.ClearSelectedTile()
+		return false
+	} 
+
 	if (selection != r.SelectedTile) {
-		fmt.Println("Selection update", x, y, selection)
 		r.SelectedTile = selection
+		sx, sy := tile.GetShipPos()
+		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride {
+			CubeColorOverride{ sx, sy, CubeColor{ 1.0, 0.0, 0.0, 0.5 } },
+		})
 	}
-	return selection != nil
+
+	return true
 }
 
 func (r *RoomsComponent) ClearSelectedTile() {
 	if r.SelectedTile != nil {
-		fmt.Println("Selection clear")
 		r.SelectedTile = nil
+		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})
 	}
 }
 

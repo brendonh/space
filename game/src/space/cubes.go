@@ -43,8 +43,6 @@ func (cf *CubeFaces) Count() (count int) {
 	return
 }
 
-
-
 type CubeColor struct {
 	R, G, B, A float32
 }
@@ -109,13 +107,19 @@ func addCubeFaces(buffer []float32, cube Cube, center Vec3) []float32 {
 }
 
 
-func addCubeColors(buffer []float32, cube Cube) []float32 {
-	var color = Vec3{ cube.Color.R, cube.Color.G, cube.Color.B }
-
+func addCubeColors(buffer []float32, cube Cube, addColor *CubeColor) []float32 {
 	var faceCount = cube.Faces.Count()
 
+	var color = cube.Color
+	if addColor != nil {
+		a := addColor.A
+		color.R = (addColor.R * a) + (color.R * (1 - a))
+		color.G = (addColor.G * a) + (color.G * (1 - a))
+		color.B = (addColor.B * a) + (color.B * (1 - a))
+	}
+
 	for i := 0; i < faceCount * 6; i++ {
-		buffer = append(buffer, color[0], color[1], color[2])
+		buffer = append(buffer, color.R, color.G, color.B)
 	}
 
 	return buffer

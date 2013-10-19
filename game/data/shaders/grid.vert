@@ -4,7 +4,7 @@ uniform mat4 uModelView;
 uniform mat4 uPerspective;
 
 uniform bool uActive;
-uniform ivec2 uActiveCoords;
+uniform vec2 uActiveCoords;
 
 varying float active;
 

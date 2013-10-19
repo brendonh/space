@@ -83,12 +83,13 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 	}
 
 	if c.ShowEdges && c.edgeCount > 0 {
-		var active []int
+		var active []float32
 		var tile = c.Rooms.SelectedTile
 		if tile != nil {
-			active = []int { 
-				int(float32(tile.X) + c.cubes.Center[0]) * 2, 
-				int(float32(tile.Y) + c.cubes.Center[1]) * 2, 
+			x, y := tile.GetShipPos()
+			active = []float32 { 
+				(float32(x) + c.cubes.Center[0]) * 2,
+				(float32(y) + c.cubes.Center[1]) * 2, 
 			}
 		}
 

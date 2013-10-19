@@ -70,7 +70,7 @@ type GridRenderArguments struct {
 	MModelView Mat4
 	Edges gl.Buffer
 	EdgeCount int
-	Active []int
+	Active []float32
 }
 
 func (m *GridMaterial) Render(args interface{}) {
@@ -93,7 +93,7 @@ func (m *GridMaterial) Render(args interface{}) {
 		uActive.Uniform1i(0)
 	} else {
 		uActive.Uniform1i(1)
-		uActiveCoords.Uniform2i(active[0], active[1])
+		uActiveCoords.Uniform2f(active[0], active[1])
 	}
 
 	gl.DrawArrays(gl.LINES, 0, gridArgs.EdgeCount * 6)

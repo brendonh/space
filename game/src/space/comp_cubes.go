@@ -91,8 +91,8 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 	if c.ShowEdges && c.edgeCount > 0 {
 		var active []float32
 		var tile = c.Rooms.SelectedTile
-		if tile != nil {
-			shipPos := tile.GetShipPos()
+		if tile.Valid {
+			shipPos := tile.Pos
 			active = []float32 { 
 				(float32(shipPos.X) + c.cubes.Center[0]) * 2,
 				(float32(shipPos.Y) + c.cubes.Center[1]) * 2, 

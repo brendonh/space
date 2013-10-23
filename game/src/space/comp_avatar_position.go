@@ -30,7 +30,7 @@ func (p *AvatarPosition) TickPhysics() {
 func (p *AvatarPosition) Event(tag string, args interface{}) {
 	switch(tag) {
 	case "move_to":
-		p.MoveTo(args.(*Tile))
+		p.MoveTo(args.(Vec2i))
 	}
 }
 
@@ -95,8 +95,24 @@ func (p *AvatarPosition) Detach() {
 	p.Crew = nil
 }
 
-func (p *AvatarPosition) MoveTo(tile *Tile) {
-	fmt.Println("Moving to", tile)
+func (p *AvatarPosition) MoveTo(tilePos Vec2i) {
+	fmt.Println("Moveto", tilePos)
+	//var currentTile = p.Rooms.Grid.Get(p.ShipPosition)
+	path, success := p.Rooms.Grid.FindPath(p.ShipPosition, tilePos)
+
+	if !success {
+		p.Rooms.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})		
+		return
+	}
+
+	overrides := make([]CubeColorOverride, 0, len(path))
+	for _, tilePos := range path {
+		//shipPos := tile.GetShipPos()
+		overrides = append(overrides, CubeColorOverride{ 
+			tilePos.X, tilePos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } })
+	}
+
+	p.Rooms.Entity.BroadcastEvent("update_colors", overrides)
 }
 
 func (p *AvatarPosition) GetModelMatrix(alpha float32) Mat4 {

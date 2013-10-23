@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 )
 
 type CrewComponent struct {
@@ -31,7 +30,7 @@ func (c *CrewComponent) Remove(avatar *Entity) {
 func (c *CrewComponent) Event(tag string, args interface{}) {
 	switch(tag) {
 	case "trigger_tile":
-		var target = args.(*Tile)
+		var target = args.(Vec2i)
 		for _, crew := range c.Avatars {
 			crew.BroadcastEvent("move_to", target)
 			break

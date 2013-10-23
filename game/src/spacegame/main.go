@@ -52,6 +52,10 @@ func initSector(ml *space.Mainloop) {
 	rooms.AddRoom(space.MakeSquareRoom(0, 0, 3, 5, space.CubeColor{ 1.0, 1.0, 0.3, 1.0 }))
 	rooms.AddRoom(space.MakeSquareRoom(3, 0, 4, 2, space.CubeColor{ 1.0, 0.5, 1.0, 1.0 }))
 	rooms.AddRoom(space.MakeSquareRoom(-4, 0, 4, 2, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(3, 5, 4, 2, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(0, 5, 1, 5, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(1, 9, 5, 1, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
+	rooms.AddRoom(space.MakeSquareRoom(4, 7, 2, 2, space.CubeColor{ 1.0, 1.0, 0.5, 1.0 }))
 	ship.AddComponent(rooms)
 
 	ship.AddComponent(&space.CrewComponent{})
@@ -69,7 +73,19 @@ func initSector(ml *space.Mainloop) {
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
+	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 2 })
 
-	pos.AttachToShipPosition(ship, space.Vec2i{ 1, 2 })
+
+	guy = ml.Entities.NewEntity()
+	guy.Name = "guy2"
+	ml.Entities.NameEntity(guy)
+
+	pos = &space.AvatarPosition{}
+	guy.AddComponent(pos)
+	guy.AddComponent(space.NewAvatarRenderer())
+	guy.InitComponents()
+	ml.Sector.AddEntity(guy)
+	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 3 })
+
 }
 

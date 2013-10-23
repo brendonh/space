@@ -9,7 +9,7 @@ type RoomsComponent struct {
 	BaseComponent
 	Rooms []*Room
 	Grid TileGrid
-	SelectedTile *Tile
+	SelectedTile Tile
 	Center Vec3
 }
 
@@ -28,39 +28,37 @@ func (r *RoomsComponent) AddRoom(room *Room) {
 
 
 func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
-	var selection *Tile
+	var selection Tile
 
 	var tile = r.Grid.Get(pos)
-	if tile != nil {
-		selection = tile
+	if tile.Valid {
+		selection = Tile{ 
+			Pos: pos, 
+			Valid: true,
+		}
 	}
 
-	if selection == nil {
+	if !selection.Valid {
 		r.ClearSelectedTile()
 		return false
 	} 
 
 	if (selection != r.SelectedTile) {
 		r.SelectedTile = selection
-		shipPos := tile.GetShipPos()
-		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride {
-			CubeColorOverride{ shipPos.X, shipPos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } },
-		})
 	}
 
 	return true
 }
 
 func (r *RoomsComponent) ClearSelectedTile() {
-	if r.SelectedTile != nil {
-		r.SelectedTile = nil
-		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile)
-		r.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})
+	if r.SelectedTile.Valid {
+		r.SelectedTile = Tile{}
+		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile.Pos)
 	}
 }
 
 func (r *RoomsComponent) TriggerSelectedTile() {
-	r.Entity.BroadcastEvent("trigger_tile", r.SelectedTile)
+	r.Entity.BroadcastEvent("trigger_tile", r.SelectedTile.Pos)
 }
 
 func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
@@ -74,6 +72,8 @@ func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
 func (r *RoomsComponent) update() {
 	var cubes []Cube
 	var cogX, cogY, mass float32
+
+	// XXX TODO: Should this use the grid?
 
 	for _, room := range r.Rooms {
 		for _, tile := range room.Tiles {

@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 )
 
 type ShipInput struct {
@@ -33,8 +32,6 @@ func (c *ShipInput) Actions() []string {
 func (c *ShipInput) KeyDown(action string) bool {
 	switch action {
 	case "mouse_activate":
-		fmt.Println("Click!")
-		
 		x, y := mainloop.RenderContext.Window.GetCursorPosition()
 		ray := mainloop.RenderContext.ScreenToWorld(x, y)
 

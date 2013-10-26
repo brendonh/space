@@ -9,9 +9,7 @@ import (
 
 type AvatarPosition struct {
 	BaseComponent
-	Crew *CrewComponent
 	Physics *SpacePhysics
-	Rooms *RoomsComponent
 
 	ShipPosition Vec2i
 	Position SpacePosition
@@ -38,10 +36,14 @@ func (p *AvatarPosition) Attached() bool {
 	return p.Physics.Entity != p.Entity
 }
 
-func (p *AvatarPosition) AttachTo(e *Entity) {
-	p.Crew = e.GetComponent("crew").(*CrewComponent)
-	p.Rooms = e.GetComponent("rooms").(*RoomsComponent)
+func (p *AvatarPosition) AttachedTo() *Entity {
+	if !p.Attached() {
+		return nil
+	}
+	return p.Physics.Entity
+}
 
+func (p *AvatarPosition) AttachTo(e *Entity) {
 	oldPhysics := p.Physics
 	newPhysics := e.GetComponent("struct_spacephysics").(*SpacePhysics)
 
@@ -54,22 +56,18 @@ func (p *AvatarPosition) AttachTo(e *Entity) {
 		p.physicsToPosition(oldPhysics, newPhysics, &p.Position, 1)
 	}
 	p.Physics = newPhysics
-
-	p.Crew.Add(p.Entity)
 }
 
 func (p *AvatarPosition) AttachToShipPosition(e *Entity, pos Vec2i) {
-	p.Crew = e.GetComponent("crew").(*CrewComponent)
-	p.Rooms = e.GetComponent("rooms").(*RoomsComponent)
 	p.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
 
 	p.ShipPosition = pos
 
-	modelPos := p.Rooms.TileToModel(pos)
+	rooms := e.GetComponent("rooms").(*RoomsComponent)
+
+	modelPos := rooms.TileToModel(pos)
 	p.Position = SpacePosition{ modelPos, 0 }
 	p.PrevPosition = p.Position
-
-	p.Crew.Add(p.Entity)
 }
 
 func (p *AvatarPosition) Detach() {
@@ -89,30 +87,26 @@ func (p *AvatarPosition) Detach() {
 	}
 	p.Entity.AddComponent(&phys)
 	p.Physics = &phys
-
-	p.Rooms = nil
-	p.Crew.Remove(p.Entity)
-	p.Crew = nil
 }
 
 func (p *AvatarPosition) MoveTo(tilePos Vec2i) {
 	fmt.Println("Moveto", tilePos)
 	//var currentTile = p.Rooms.Grid.Get(p.ShipPosition)
-	path, success := p.Rooms.Grid.FindPath(p.ShipPosition, tilePos)
+	// path, success := p.Rooms.Grid.FindPath(p.ShipPosition, tilePos)
 
-	if !success {
-		p.Rooms.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})		
-		return
-	}
+	// if !success {
+	// 	p.Rooms.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})		
+	// 	return
+	// }
 
-	overrides := make([]CubeColorOverride, 0, len(path))
-	for _, tilePos := range path {
-		//shipPos := tile.GetShipPos()
-		overrides = append(overrides, CubeColorOverride{ 
-			tilePos.X, tilePos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } })
-	}
+	// overrides := make([]CubeColorOverride, 0, len(path))
+	// for _, tilePos := range path {
+	// 	//shipPos := tile.GetShipPos()
+	// 	overrides = append(overrides, CubeColorOverride{ 
+	// 		tilePos.X, tilePos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } })
+	// }
 
-	p.Rooms.Entity.BroadcastEvent("update_colors", overrides)
+	// p.Rooms.Entity.BroadcastEvent("update_colors", overrides)
 }
 
 func (p *AvatarPosition) GetModelMatrix(alpha float32) Mat4 {

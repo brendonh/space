@@ -16,14 +16,19 @@ type Component interface {
 	Event(tag string, args interface{})
 }
 
-type PhysicsComponent interface {
+type ManagementComponent interface {
 	Component
-	TickPhysics()
+	TickManagement()
 }
 
 type LogicComponent interface {
 	Component
 	TickLogic()
+}
+
+type PhysicsComponent interface {
+	Component
+	TickPhysics()
 }
 
 type RenderComponent interface {
@@ -36,6 +41,7 @@ type PhysicalComponent interface {
 	Component
 	Weight() float64
 }
+
 
 // --------------------------------------------------
 

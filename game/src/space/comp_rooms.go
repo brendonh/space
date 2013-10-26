@@ -7,8 +7,8 @@ import (
 
 type RoomsComponent struct {
 	BaseComponent
+	Manager *ActionManager
 	Rooms []*Room
-	Grid TileGrid
 	SelectedTile Tile
 	Center Vec3
 }
@@ -18,19 +18,24 @@ func (r *RoomsComponent) Tag() string {
 }
 
 func (r *RoomsComponent) Init() {
-	r.update()
+	r.Manager = r.Entity.GetComponent("action_manager").(*ActionManager)
+	r.Refresh()
 }
 
 func (r *RoomsComponent) AddRoom(room *Room) {
 	r.Rooms = append(r.Rooms, room)
-	r.Grid.SetRooms(r.Rooms)
+}
+
+func (r *RoomsComponent) Refresh() {
+	r.Manager.Grid.SetRooms(r.Rooms)
+	r.updateCubes()
 }
 
 
 func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
 	var selection Tile
 
-	var tile = r.Grid.Get(pos)
+	var tile = r.Manager.Grid.Get(pos)
 	if tile.Valid {
 		selection = Tile{ 
 			Pos: pos, 
@@ -58,7 +63,10 @@ func (r *RoomsComponent) ClearSelectedTile() {
 }
 
 func (r *RoomsComponent) TriggerSelectedTile() {
-	r.Entity.BroadcastEvent("trigger_tile", r.SelectedTile.Pos)
+	manager := r.Entity.GetComponent("action_manager").(*ActionManager)
+	manager.AddAction(&Action{
+		Location: r.SelectedTile.Pos, 
+	})
 }
 
 func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
@@ -69,7 +77,7 @@ func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
 }
 
 
-func (r *RoomsComponent) update() {
+func (r *RoomsComponent) updateCubes() {
 	var cubes []Cube
 	var cogX, cogY, mass float32
 

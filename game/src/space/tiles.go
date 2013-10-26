@@ -5,19 +5,16 @@ import (
 	"math"
 )
 
-
-type Tile struct {
-	Pos Vec2i
-	Color CubeColor
-	Valid bool
-}
-
 // --------------------------------------------------------
 
+type RoomTile struct {
+	Pos Vec2i
+	Color CubeColor
+}
 
 type Room struct {
 	Pos Vec2i
-	Tiles []Tile
+	Tiles []RoomTile
 }
 
 func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
@@ -28,10 +25,10 @@ func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
 		},
 	}
 
-	var tiles = make([]Tile, 0, width * height)
+	var tiles = make([]RoomTile, 0, width * height)
 	for i := 0; i < width; i++ {
 		for j := 0; j < height; j++ {
-			tiles = append(tiles, Tile{ Vec2i{ i, j }, color, true })
+			tiles = append(tiles, RoomTile{ Vec2i{ i, j }, color })
 		}
 	}
 	room.Tiles = tiles
@@ -40,6 +37,12 @@ func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
 
 
 // --------------------------------------------------------
+
+type Tile struct {
+	Pos Vec2i
+	Color CubeColor
+	Valid bool
+}
 
 
 type TileGrid struct {
@@ -61,24 +64,19 @@ func (g *TileGrid) shipIndex(pos Vec2i) int {
 	return g.localIndex(pos)
 }
 
-func (g *TileGrid) Get(pos Vec2i) Tile {
+func (g *TileGrid) Valid(pos Vec2i) bool {
 	idx := g.shipIndex(pos)
 	if idx < 0 || idx >= len(g.Grid) {
-		return Tile{}
+		return false
 	}
-	return g.Grid[idx]
-}
-
-func (g *TileGrid) Set(pos Vec2i, t Tile) {
-	idx := g.shipIndex(pos)
-	g.Grid[idx] = t
+	return g.Grid[idx].Valid
 }
 
 func (g *TileGrid) SetRooms(rooms []*Room) {
 	var minX, maxX, minY, maxY int
 	for _, room := range rooms {
-		for _, tile := range room.Tiles {
-			shipPos := room.Pos.Add(tile.Pos)
+		for _, roomTile := range room.Tiles {
+			shipPos := room.Pos.Add(roomTile.Pos)
 			if shipPos.X < minX { minX = shipPos.X }
 			if shipPos.X > maxX { maxX = shipPos.X }
 			if shipPos.Y < minY { minY = shipPos.Y }
@@ -93,9 +91,13 @@ func (g *TileGrid) SetRooms(rooms []*Room) {
 
 	g.Grid = make([]Tile, g.Extent.X * g.Extent.Y)
 	for _, room := range rooms {
-		for _, tile := range room.Tiles {
-			tile.Pos = room.Pos.Add(tile.Pos)
-			g.Set(tile.Pos, tile)
+		for _, roomTile := range room.Tiles {
+			roomPos := room.Pos.Add(roomTile.Pos)
+			g.Grid[g.shipIndex(roomPos)] = Tile{
+				Pos: roomPos,
+				Color: roomTile.Color,
+				Valid: true,
+			}
 		}
 	}
 }

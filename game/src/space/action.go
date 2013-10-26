@@ -16,6 +16,8 @@ func (a *Action) Prepare(avatar *Entity) bool {
 		return false
 	}
 
+	// Do we want a distance check?
+
 	position := avatar.GetComponent("struct_avatarposition").(*AvatarPosition)
 	if position.AttachedTo() != a.Manager.Entity {
 		fmt.Println("Avatar not attached to manager entity!", avatar, a.Manager.Entity)

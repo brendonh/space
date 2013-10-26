@@ -75,7 +75,7 @@ func initSector(ml *space.Mainloop) {
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
-	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 2 })
+	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 3 })
 
 
 	guy = ml.Entities.NewEntity()
@@ -88,7 +88,7 @@ func initSector(ml *space.Mainloop) {
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
-	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 3 })
+	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 2 })
 
 }
 

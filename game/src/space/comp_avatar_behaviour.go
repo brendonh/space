@@ -7,9 +7,10 @@ import (
 type AvatarBehaviour struct {
 	BaseComponent
 	Position *AvatarPosition
+	Idle bool
 
 	Action *Action
-	Idle bool
+	Move *AvatarMove
 }
 
 func NewAvatarBehaviour() *AvatarBehaviour {
@@ -27,7 +28,7 @@ func (b *AvatarBehaviour) Init() {
 func (b *AvatarBehaviour) SetAction(action *Action) {
 	fmt.Println("Starting action", b.Entity.Name, action)
 	b.Action = action
-	
+	b.Idle = false
 }
 
 func (b *AvatarBehaviour) TickLogic() {
@@ -45,4 +46,18 @@ func (b *AvatarBehaviour) TickLogic() {
 		manager.AddAvatar(b.Entity)
 		return
 	}
+
+	if b.Move == nil {
+		nextTile := b.Action.Path[0]
+		fmt.Println("Getting next move", nextTile)
+		
+	}
+}
+
+
+type AvatarMove struct {
+	FromPos Vec2i
+	ToPos Vec2i
+	TotalTicks int
+	CurrentTicks int
 }

@@ -5,11 +5,16 @@ import (
 )
 
 
+type TileSelection struct {
+	Pos Vec2i
+	Valid bool
+}
+
 type RoomsComponent struct {
 	BaseComponent
 	Manager *ActionManager
 	Rooms []*Room
-	SelectedTile Tile
+	SelectedTile TileSelection
 	Center Vec3
 }
 
@@ -33,11 +38,10 @@ func (r *RoomsComponent) Refresh() {
 
 
 func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
-	var selection Tile
+	var selection TileSelection
 
-	var tile = r.Manager.Grid.Get(pos)
-	if tile.Valid {
-		selection = Tile{ 
+	if r.Manager.Grid.Valid(pos) {
+		selection = TileSelection{ 
 			Pos: pos, 
 			Valid: true,
 		}
@@ -48,7 +52,7 @@ func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
 		return false
 	} 
 
-	if (selection != r.SelectedTile) {
+	if selection != r.SelectedTile {
 		r.SelectedTile = selection
 	}
 
@@ -57,7 +61,7 @@ func (r *RoomsComponent) SetSelectedTile(pos Vec2i) bool {
 
 func (r *RoomsComponent) ClearSelectedTile() {
 	if r.SelectedTile.Valid {
-		r.SelectedTile = Tile{}
+		r.SelectedTile = TileSelection{}
 		r.Entity.BroadcastEvent("selected_tile", r.SelectedTile.Pos)
 	}
 }

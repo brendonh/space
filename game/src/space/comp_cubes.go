@@ -1,13 +1,13 @@
 package space
 
 import (
-	"math"
-
 	"space/render"
 
 	"github.com/go-gl/gl"
 	. "github.com/brendonh/glvec"
 )
+
+const CUBE_SCALE float32 = 2
 
 type CubesComponent struct {
 	BaseComponent
@@ -94,8 +94,8 @@ func (c *CubesComponent) Render(context *render.Context, alpha float32) {
 		if tile.Valid {
 			shipPos := tile.Pos
 			active = []float32 { 
-				(float32(shipPos.X) + c.cubes.Center[0]) * 2,
-				(float32(shipPos.Y) + c.cubes.Center[1]) * 2, 
+				(float32(shipPos.X) + c.cubes.Center[0]) * CUBE_SCALE,
+				(float32(shipPos.Y) + c.cubes.Center[1]) * CUBE_SCALE, 
 			}
 		}
 
@@ -121,7 +121,7 @@ func (c *CubesComponent) HandleMouse(ray Ray, action MouseAction) bool {
 		
 		V3Add(&worldPos, worldPos, Vec3{ 1, 1, 1 })
 
-		shipPos := c.ModelToTile(worldPos)
+		shipPos := c.Rooms.ModelToTile(worldPos)
 		if !c.Rooms.SetSelectedTile(shipPos) {
 			return false
 		}
@@ -135,18 +135,6 @@ func (c *CubesComponent) HandleMouse(ray Ray, action MouseAction) bool {
 
 	c.Rooms.ClearSelectedTile()
 	return false
-}
-
-
-func (c *CubesComponent) ModelToTile(worldPos Vec3) Vec2i {
-	V3ScalarMul(&worldPos, worldPos, 0.5)
-	
-	V3Sub(&worldPos, worldPos, c.cubes.Center)
-	
-	return Vec2i{
-		int(math.Floor(float64(worldPos[0]))),
-		int(math.Floor(float64(worldPos[1]))),
-	}
 }
 
 

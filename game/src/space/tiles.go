@@ -18,12 +18,7 @@ type Room struct {
 }
 
 func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
-	room := &Room{
-		Pos: Vec2i{
-			X: x,
-			Y: y,
-		},
-	}
+	room := &Room{ Pos: Vec2i{ x, y } }
 
 	var tiles = make([]RoomTile, 0, width * height)
 	for i := 0; i < width; i++ {
@@ -38,12 +33,27 @@ func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
 
 // --------------------------------------------------------
 
+type TileReservation struct {
+	Entity *Entity
+	Transient bool
+}
+
+func (t *TileReservation) Blocked() bool {
+	return t.Entity != nil && !t.Transient
+}
+
+func (t *TileReservation) Clear() {
+	t.Entity = nil
+}
+
 type Tile struct {
 	Pos Vec2i
 	Color CubeColor
 	Valid bool
+	Reservation TileReservation
 }
 
+// --------------------------------------------------------
 
 type TileGrid struct {
 	Grid []Tile
@@ -65,11 +75,16 @@ func (g *TileGrid) shipIndex(pos Vec2i) int {
 }
 
 func (g *TileGrid) Valid(pos Vec2i) bool {
+	tile := g.Get(pos)
+	return tile != nil && tile.Valid
+}
+
+func (g *TileGrid) Get(pos Vec2i) *Tile {
 	idx := g.shipIndex(pos)
 	if idx < 0 || idx >= len(g.Grid) {
-		return false
+		return nil
 	}
-	return g.Grid[idx].Valid
+	return &g.Grid[idx]
 }
 
 func (g *TileGrid) SetRooms(rooms []*Room) {
@@ -183,8 +198,7 @@ func (g *TileGrid) localPosAvailable(coord Vec2i) bool {
 
 	tile := g.Grid[idx]
 
-	// XXX TODO: Check obstructions here
-	return tile.Valid
+	return tile.Valid && !tile.Reservation.Blocked()
 }
 
 type neighbourTile struct {

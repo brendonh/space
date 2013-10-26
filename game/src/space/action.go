@@ -35,6 +35,10 @@ func (a *Action) Prepare(avatar *Entity) bool {
 	return true
 }
 
+func (a *Action) Abandon() {
+	a.Avatar = nil
+	a.Path = nil
+}
 
 func (a *Action) qualified(avatar *Entity) bool {
 	return true

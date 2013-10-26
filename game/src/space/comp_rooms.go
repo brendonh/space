@@ -1,6 +1,8 @@
 package space
 
 import (
+	"math"
+
 	. "github.com/brendonh/glvec"
 )
 
@@ -76,8 +78,19 @@ func (r *RoomsComponent) TriggerSelectedTile() {
 func (r *RoomsComponent) TileToModel(pos Vec2i) (worldPos Vec3) {
 	worldPos = Vec3 { float32(pos.X), float32(pos.Y), 0 }
 	V3Add(&worldPos, worldPos, r.Center)
-	V3ScalarMul(&worldPos, worldPos, 2) // Oof
+	V3ScalarMul(&worldPos, worldPos, CUBE_SCALE) // Oof
 	return
+}
+
+func (r *RoomsComponent) ModelToTile(worldPos Vec3) Vec2i {
+	V3ScalarDiv(&worldPos, worldPos, CUBE_SCALE)
+	
+	V3Sub(&worldPos, worldPos, r.Center)
+	
+	return Vec2i{
+		int(math.Floor(float64(worldPos[0]))),
+		int(math.Floor(float64(worldPos[1]))),
+	}
 }
 
 

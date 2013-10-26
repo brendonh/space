@@ -69,20 +69,24 @@ func initSector(ml *space.Mainloop) {
 	guy.Name = "guy"
 	ml.Entities.NameEntity(guy)
 
-	pos := &space.AvatarPosition{}
+	pos := &space.AvatarPosition{
+		WalkSpeed: 1.0 / 60.0,
+	}
 	guy.AddComponent(pos)
 	guy.AddComponent(space.NewAvatarBehaviour())
 	guy.AddComponent(space.NewAvatarRenderer())
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
-	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 3 })
+	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 1 })
 
 
 	guy = ml.Entities.NewEntity()
 	guy.Name = "guy2"
 	ml.Entities.NameEntity(guy)
 
-	pos = &space.AvatarPosition{}
+	pos = &space.AvatarPosition{
+		WalkSpeed: 1.0 / 30.0,
+	}
 	guy.AddComponent(pos)
 	guy.AddComponent(space.NewAvatarBehaviour())
 	guy.AddComponent(space.NewAvatarRenderer())

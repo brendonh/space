@@ -12,8 +12,12 @@ type AvatarPosition struct {
 	Physics *SpacePhysics
 
 	ShipPosition Vec2i
+	Moves []Vec3
+
 	Position SpacePosition
 	PrevPosition SpacePosition
+
+	WalkSpeed float64
 }
 
 func (p *AvatarPosition) Tag() string {
@@ -22,7 +26,20 @@ func (p *AvatarPosition) Tag() string {
 
 func (p *AvatarPosition) TickPhysics() {
 	p.PrevPosition = p.Position
-	// ...
+
+	pos := &p.Position
+
+	if len(p.Moves) > 0 {
+		for _, move := range p.Moves {
+			V3Add(&pos.Pos, pos.Pos, move)
+		}
+		
+		p.Moves = p.Moves[:0]
+	}
+}
+
+func (p *AvatarPosition) AddMove(move Vec3) {
+	p.Moves = append(p.Moves, move)
 }
 
 func (p *AvatarPosition) Event(tag string, args interface{}) {
@@ -54,17 +71,30 @@ func (p *AvatarPosition) AttachTo(e *Entity) {
 
 		p.physicsToPosition(oldPhysics, newPhysics, &p.PrevPosition, 0)
 		p.physicsToPosition(oldPhysics, newPhysics, &p.Position, 1)
+
+		// ??
+		// rooms := e.GetComponent("rooms").(*RoomsComponent)
+		// p.ShipPosition = rooms.ModelToTile(
+
 	}
 	p.Physics = newPhysics
 }
 
-func (p *AvatarPosition) AttachToShipPosition(e *Entity, pos Vec2i) {
-	p.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
+func (p *AvatarPosition) AttachToShipPosition(e *Entity, pos Vec2i) bool {
+	manager := e.GetComponent("action_manager").(*ActionManager)
+	if manager.ReserveTile(pos, p.Entity, false) != RESERVE_OK {
+		return false
+	}
 
+	p.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
+	p.SetShipPosition(pos)
+	return true
+}
+
+func (p *AvatarPosition) SetShipPosition(pos Vec2i) {
 	p.ShipPosition = pos
 
-	rooms := e.GetComponent("rooms").(*RoomsComponent)
-
+	rooms := p.Physics.Entity.GetComponent("rooms").(*RoomsComponent)
 	modelPos := rooms.TileToModel(pos)
 	p.Position = SpacePosition{ modelPos, 0 }
 	p.PrevPosition = p.Position

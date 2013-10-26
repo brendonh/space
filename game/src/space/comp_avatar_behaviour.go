@@ -2,6 +2,9 @@ package space
 
 import (
 	"fmt"
+	"math"
+
+	. "github.com/brendonh/glvec"
 )
 
 type AvatarBehaviour struct {
@@ -38,26 +41,105 @@ func (b *AvatarBehaviour) TickLogic() {
 
 	if b.Action == nil {
 		b.Idle = true
-		ship := b.Position.AttachedTo()
-		if ship == nil {
-			return
-		}
-		manager := ship.GetComponent("action_manager").(*ActionManager)
-		manager.AddAvatar(b.Entity)
+
+		b.getManager().AddAvatar(b.Entity)
 		return
 	}
 
 	if b.Move == nil {
-		nextTile := b.Action.Path[0]
-		fmt.Println("Getting next move", nextTile)
-		
+		b.assignNextMove()
 	}
+
+	if b.Move == nil {
+		fmt.Println("No move")
+		return
+	}
+
+	b.Move.Tick(b.Position)
+
+	if b.Move.Done() {
+		fmt.Println("Move finished")
+		b.Position.SetShipPosition(b.Move.ToPos)
+		b.getManager().ReleaseReservation(b.Move.FromPos, b.Entity)
+		b.Move = nil
+	}
+}
+
+func (b *AvatarBehaviour) assignNextMove() {
+	if len(b.Action.Path) == 0 {
+		fmt.Println("Action pathing finished")
+		b.Action = nil
+		return
+	}
+
+	nextTile := b.Action.Path[0]
+	
+	isLast := nextTile == b.Action.Location
+	
+	switch (b.getManager().ReserveTile(nextTile, b.Entity, !isLast)) {
+	case RESERVE_WAIT:
+		b.Move = nil
+		return 
+	case RESERVE_FAIL:
+		fmt.Println("Reservation failed! Abandoning action")
+		b.Move = nil
+		action := b.Action
+		b.Action = nil
+		action.Abandon()
+		b.getManager().AddAction(action)
+		return
+	}
+	
+	currentTile := b.Position.ShipPosition
+	
+	distance := nextTile.Distance(currentTile)
+	ticks := int(math.Ceil(distance / b.Position.WalkSpeed))
+	fmt.Println("Move:", currentTile, nextTile, distance, ticks)
+	b.Move = NewAvatarMove(currentTile, nextTile, ticks)
+	b.Action.Path = b.Action.Path[1:]
+}
+
+func (b *AvatarBehaviour) getManager() *ActionManager {
+	ship := b.Position.AttachedTo()
+	if ship == nil {
+		return nil
+	}
+	manager := ship.GetComponent("action_manager")
+	if manager == nil {
+		return nil
+	}
+	return manager.(*ActionManager)
 }
 
 
 type AvatarMove struct {
 	FromPos Vec2i
 	ToPos Vec2i
+	Step Vec3
 	TotalTicks int
 	CurrentTicks int
+}
+
+func NewAvatarMove(from, to Vec2i, ticks int) *AvatarMove {
+	am := &AvatarMove {
+		FromPos: from,
+		ToPos: to,
+		TotalTicks: ticks,
+		CurrentTicks: 0,
+	}
+
+	step := to.Vec3()
+	V3Sub(&step, step, from.Vec3())
+	V3ScalarDiv(&am.Step, step, float32(ticks) / CUBE_SCALE)
+	fmt.Println("Step:", am.Step)
+	return am
+}
+
+func (m *AvatarMove) Tick(pos *AvatarPosition) {
+	pos.AddMove(m.Step)
+	m.CurrentTicks++
+}
+
+func (m *AvatarMove) Done() bool {
+	return m.CurrentTicks == m.TotalTicks
 }

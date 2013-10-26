@@ -37,13 +37,12 @@ func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
 type Tile struct {
 	Pos Vec2i
 	Color CubeColor
-	Valid bool
 }
 
 // --------------------------------------------------------
 
 type TileGrid struct {
-	Grid []Tile
+	Grid []*Tile
 	Extent Vec2i
 	Offset Vec2i
 }
@@ -63,7 +62,7 @@ func (g *TileGrid) shipIndex(pos Vec2i) int {
 
 func (g *TileGrid) Valid(pos Vec2i) bool {
 	tile := g.Get(pos)
-	return tile != nil && tile.Valid
+	return tile != nil
 }
 
 func (g *TileGrid) Get(pos Vec2i) *Tile {
@@ -71,7 +70,7 @@ func (g *TileGrid) Get(pos Vec2i) *Tile {
 	if idx < 0 || idx >= len(g.Grid) {
 		return nil
 	}
-	return &g.Grid[idx]
+	return g.Grid[idx]
 }
 
 func (g *TileGrid) SetRooms(rooms []*Room) {
@@ -91,42 +90,41 @@ func (g *TileGrid) SetRooms(rooms []*Room) {
 	g.Offset.X = -minX
 	g.Offset.Y = -minY
 
-	g.Grid = make([]Tile, g.Extent.X * g.Extent.Y)
+	g.Grid = make([]*Tile, g.Extent.X * g.Extent.Y)
 	for _, room := range rooms {
 		for _, roomTile := range room.Tiles {
 			roomPos := room.Pos.Add(roomTile.Pos)
-			g.Grid[g.shipIndex(roomPos)] = Tile{
+			g.Grid[g.shipIndex(roomPos)] = &Tile{
 				Pos: roomPos,
 				Color: roomTile.Color,
-				Valid: true,
 			}
 		}
 	}
 }
 
-func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
+func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, float64, bool) {
 	start := startTile.Add(g.Offset)
 	end := endTile.Add(g.Offset)
 
 	indexes := newTileIndexes(g.Extent.X, g.Extent.X * g.Extent.Y)
 	open := newOpenTileSet(end, indexes)
 	heap.Init(open)
-	heap.Push(open, openTile{
+	heap.Push(open, &openTile{
 		Coords: start,
 		Cost: 0,
 		Heuristic: open.DiagonalDistance(start),
 		Valid: true,
 	})
 
-	closed := make([]openTile, (g.Extent.X * g.Extent.Y))
+	closed := make([]*openTile, (g.Extent.X * g.Extent.Y))
 
 	neighbourBuf := make([]neighbourTile, 0, 8)
 
-	var current openTile
+	var current *openTile
 	var success bool
 
 	for open.Len() > 0 {
-		current = heap.Pop(open).(openTile)
+		current = heap.Pop(open).(*openTile)
 
 		if current.Coords == end {
 			success = true
@@ -134,39 +132,39 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 		}
 
 		closed[g.localIndex(current.Coords)] = current
-
 		for _, neighbour := range g.neighbours(current.Coords, neighbourBuf) {
 			cost := current.Cost + neighbour.MoveCost
 
-			existingOpen, inOpen := open.Peek(neighbour.Coords)
-			if inOpen && cost < existingOpen.Cost {
+			existingOpen := open.Peek(neighbour.Coords)
+			if existingOpen != nil && cost < existingOpen.Cost {
 				heap.Remove(open, existingOpen.Index)
-				inOpen = false
+				existingOpen = nil
 			}
 
 			existingClosed := closed[g.localIndex(neighbour.Coords)]
-			inClosed := existingClosed.Valid
-			if inClosed && cost < existingClosed.Cost {
-				closed[g.localIndex(neighbour.Coords)] = openTile{}
-				inClosed = false
+			if existingClosed != nil && cost < existingClosed.Cost {
+				closed[g.localIndex(neighbour.Coords)] = nil
+				existingClosed = nil
 			}
 
-			if !inOpen && !inClosed {
-				open.Add(neighbour.Coords, current.Coords, cost)
+			if existingOpen == nil && existingClosed == nil {
+				open.Add(neighbour.Coords, current, cost)
 			}
 		}
 	}
 
 	if !success {
-		return nil, false
+		return nil, 0, false
 	}
+
+	finalCost := current.Cost
 
 	reversePath := make([]Vec2i, 0, 10)
 	for current.Coords != start {
 		reversePath = append(reversePath, current.Coords)
-		next := closed[g.localIndex(current.Parent)]
+		next := current.Parent
 		if next == current {
-			panic("BROKEN")
+			panic("PATH BROKEN")
 		}
 		current = next
 	}
@@ -177,7 +175,7 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 		path = append(path, reversePath[i].Add(negOffset))
 	}
 
-	return path, true
+	return path, finalCost, true
 }
 
 func (g *TileGrid) localPosAvailable(coord Vec2i) bool {
@@ -191,7 +189,7 @@ func (g *TileGrid) localPosAvailable(coord Vec2i) bool {
 
 	tile := g.Grid[idx]
 
-	return tile.Valid
+	return tile != nil
 }
 
 type neighbourTile struct {
@@ -283,7 +281,7 @@ func (ti *tileIndexes) Clear(coord Vec2i) {
 
 type openTile struct {
 	Coords Vec2i
-	Parent Vec2i
+	Parent *openTile
 	Cost float64
 	Heuristic float64
 	Index int
@@ -293,19 +291,19 @@ type openTile struct {
 type openTileSet struct {
 	Target Vec2i
 	indexes *tileIndexes
-	queue []openTile
+	queue []*openTile
 }
 
 func newOpenTileSet(target Vec2i, tileIndexes *tileIndexes) *openTileSet {
 	return &openTileSet{
 		Target: target,
 		indexes: tileIndexes,
-		queue: make([]openTile, 0, 10),
+		queue: make([]*openTile, 0, 10),
 	}
 }
 
-func (ots *openTileSet) Add(coord Vec2i, parent Vec2i, cost float64) {
-	heap.Push(ots, openTile{
+func (ots *openTileSet) Add(coord Vec2i, parent *openTile, cost float64) {
+	heap.Push(ots, &openTile{
 		Coords: coord,
 		Parent: parent,
 		Cost: cost,
@@ -314,12 +312,12 @@ func (ots *openTileSet) Add(coord Vec2i, parent Vec2i, cost float64) {
 	})
 }
 
-func (ots *openTileSet) Peek(coord Vec2i) (openTile, bool) {
+func (ots *openTileSet) Peek(coord Vec2i) *openTile {
 	idx := ots.indexes.Get(coord)
 	if idx == -1 {
-		return openTile{}, false
+		return nil
 	}
-	return ots.queue[idx], true
+	return ots.queue[idx]
 }
 
 func (ots *openTileSet) Len() int {
@@ -341,7 +339,7 @@ func (ots *openTileSet) Swap(i, j int) {
 }
 
 func (ots *openTileSet) Push(x interface{}) {
-	ot := x.(openTile)
+	ot := x.(*openTile)
 	ot.Index = len(ots.queue)
 	ots.queue = append(ots.queue, ot)
 	ots.indexes.Set(ot.Coords, ot.Index)

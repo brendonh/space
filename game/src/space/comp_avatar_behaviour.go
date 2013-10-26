@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 	"math"
 
 	. "github.com/brendonh/glvec"
@@ -29,7 +28,6 @@ func (b *AvatarBehaviour) Init() {
 }
 
 func (b *AvatarBehaviour) SetAction(action *Action) {
-	fmt.Println("Starting action", b.Entity.Name, action)
 	b.Action = action
 	b.Idle = false
 }
@@ -47,7 +45,6 @@ func (b *AvatarBehaviour) TickLogic() {
 	}
 
 	if b.Move != nil && b.Move.Done() {
-		fmt.Println("Move finished")
 		b.Position.SetShipPosition(b.Move.ToPos)
 		b.Move = nil
 	}
@@ -57,7 +54,6 @@ func (b *AvatarBehaviour) TickLogic() {
 	}
 
 	if b.Move == nil {
-		fmt.Println("No move")
 		return
 	}
 
@@ -66,7 +62,6 @@ func (b *AvatarBehaviour) TickLogic() {
 
 func (b *AvatarBehaviour) assignNextMove() {
 	if len(b.Action.Path) == 0 {
-		fmt.Println("Action pathing finished")
 		b.Action = nil
 		return
 	}
@@ -76,7 +71,6 @@ func (b *AvatarBehaviour) assignNextMove() {
 	distance := nextTile.Distance(currentTile)
 	ticks := int(math.Floor(distance / b.Position.WalkSpeed))
 
-	fmt.Println("Move:", currentTile, nextTile, distance, ticks)
 	b.Move = NewAvatarMove(currentTile, nextTile, ticks)
 	b.Action.Path = b.Action.Path[1:]
 }
@@ -113,7 +107,6 @@ func NewAvatarMove(from, to Vec2i, ticks int) *AvatarMove {
 	step := to.Vec3()
 	V3Sub(&step, step, from.Vec3())
 	V3ScalarDiv(&am.Step, step, float32(ticks) / CUBE_SCALE)
-	fmt.Println("Step:", am.Step)
 	return am
 }
 

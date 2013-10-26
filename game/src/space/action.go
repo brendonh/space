@@ -11,28 +11,26 @@ type Action struct {
 	Path []Vec2i
 }
 
-func (a *Action) Prepare(avatar *Entity) bool {
+func (a *Action) Prepare(avatar *Entity) ([]Vec2i, float64, bool) {
 	if !a.qualified(avatar) {
-		return false
+		return nil, 0, false
 	}
-
-	// Do we want a distance check?
 
 	position := avatar.GetComponent("struct_avatarposition").(*AvatarPosition)
 	if position.AttachedTo() != a.Manager.Entity {
 		fmt.Println("Avatar not attached to manager entity!", avatar, a.Manager.Entity)
-		return false
+		return nil, 0, false
 	}
 
-	path, ok := a.Manager.Grid.FindPath(position.ShipPosition, a.Location)
+	path, cost, ok := a.Manager.Grid.FindPath(position.ShipPosition, a.Location)
 	if !ok {
 		fmt.Println("No path to action location")
-		return false
+		return nil, 0, false
 	}
 
-	a.Avatar = avatar
-	a.Path = path
-	return true
+	cost /= position.WalkSpeed
+
+	return path, cost, true
 }
 
 func (a *Action) Abandon() {

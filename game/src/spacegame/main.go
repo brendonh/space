@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"time"
+	"math/rand"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -17,6 +19,7 @@ func init() {
 
 
 func main() {
+	runtime.GOMAXPROCS(2)
 
 	go func() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))
@@ -26,6 +29,36 @@ func main() {
 	ml.MakeGlobal()
 
 	initSector(ml)
+
+	go func() {
+		ship := ml.Entities.GetNamedEntity("ship")
+		manager := ship.GetComponent("action_manager").(*space.ActionManager)
+		c := time.Tick(1 * time.Second)
+		for {
+			
+			ml.Interventions<- func() {
+				if manager.HasIdlers() {
+					grid := manager.Grid
+					var pos space.Vec2i
+					for {
+						posX := rand.Intn(grid.Extent.X) - grid.Offset.X
+						posY := rand.Intn(grid.Extent.Y) - grid.Offset.Y
+						pos = space.Vec2i{ posX, posY }
+						tile := grid.Get(pos)
+						if tile != nil {
+							break
+						}
+					}
+
+					fmt.Println("Triggering:", pos)
+					manager.AddAction(&space.Action{
+						Location: pos,
+					})
+				}
+			}
+			<-c
+		}
+	}()
 
 	ml.Loop()
 	
@@ -93,6 +126,22 @@ func initSector(ml *space.Mainloop) {
 	guy.InitComponents()
 	ml.Sector.AddEntity(guy)
 	pos.AttachToShipPosition(ship, space.Vec2i{ 0, 2 })
+
+
+
+	guy = ml.Entities.NewEntity()
+	guy.Name = "guy3"
+	ml.Entities.NameEntity(guy)
+
+	pos = &space.AvatarPosition{
+		WalkSpeed: 1.0 / 15.0,
+	}
+	guy.AddComponent(pos)
+	guy.AddComponent(space.NewAvatarBehaviour())
+	guy.AddComponent(space.NewAvatarRenderer(space.CubeColor{ 0.3, 0.3, 1.0, 1.0 }))
+	guy.InitComponents()
+	ml.Sector.AddEntity(guy)
+	pos.AttachToShipPosition(ship, space.Vec2i{ -1, 0 })
 
 }
 

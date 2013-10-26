@@ -15,7 +15,8 @@ type Mainloop struct {
 	Camera *Camera
 	RenderContext *render.Context
 	Sector *Sector
-
+	
+	Interventions chan func()
 	restart bool
 }
 
@@ -26,7 +27,8 @@ func NewMainloop() *Mainloop {
 		RenderContext: render.NewContext(),
 		Entities: NewEntityManager(),
 		Camera: NewCamera(),
-
+		
+		Interventions: make(chan func()),
 		restart: false,
 	}
 
@@ -86,6 +88,13 @@ func (m *Mainloop) Loop() {
 		m.Sector.InputSystem.UpdateMouse()
 
 		glfw.PollEvents()
+
+		select {
+		case f := <-m.Interventions:
+			f()
+		default:
+			break
+		}
 		
 		for ; tickAcc >= secondsPerTick; tickAcc -= secondsPerTick {
 			m.Sector.Tick()

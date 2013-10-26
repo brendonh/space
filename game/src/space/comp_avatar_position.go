@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 	"math"
 
 	. "github.com/brendonh/glvec"
@@ -40,13 +39,6 @@ func (p *AvatarPosition) TickPhysics() {
 
 func (p *AvatarPosition) AddMove(move Vec3) {
 	p.Moves = append(p.Moves, move)
-}
-
-func (p *AvatarPosition) Event(tag string, args interface{}) {
-	switch(tag) {
-	case "move_to":
-		p.MoveTo(args.(Vec2i))
-	}
 }
 
 func (p *AvatarPosition) Attached() bool {
@@ -112,26 +104,6 @@ func (p *AvatarPosition) Detach() {
 	}
 	p.Entity.AddComponent(&phys)
 	p.Physics = &phys
-}
-
-func (p *AvatarPosition) MoveTo(tilePos Vec2i) {
-	fmt.Println("Moveto", tilePos)
-	//var currentTile = p.Rooms.Grid.Get(p.ShipPosition)
-	// path, success := p.Rooms.Grid.FindPath(p.ShipPosition, tilePos)
-
-	// if !success {
-	// 	p.Rooms.Entity.BroadcastEvent("update_colors", []CubeColorOverride{})		
-	// 	return
-	// }
-
-	// overrides := make([]CubeColorOverride, 0, len(path))
-	// for _, tilePos := range path {
-	// 	//shipPos := tile.GetShipPos()
-	// 	overrides = append(overrides, CubeColorOverride{ 
-	// 		tilePos.X, tilePos.Y, CubeColor{ 1.0, 0.0, 0.0, 0.5 } })
-	// }
-
-	// p.Rooms.Entity.BroadcastEvent("update_colors", overrides)
 }
 
 func (p *AvatarPosition) GetModelMatrix(alpha float32) Mat4 {

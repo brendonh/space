@@ -33,24 +33,11 @@ func MakeSquareRoom(x, y, width, height int, color CubeColor) *Room {
 
 // --------------------------------------------------------
 
-type TileReservation struct {
-	Entity *Entity
-	Transient bool
-}
-
-func (t *TileReservation) Blocked() bool {
-	return t.Entity != nil && !t.Transient
-}
-
-func (t *TileReservation) Clear() {
-	t.Entity = nil
-}
 
 type Tile struct {
 	Pos Vec2i
 	Color CubeColor
 	Valid bool
-	Reservation TileReservation
 }
 
 // --------------------------------------------------------
@@ -128,6 +115,7 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 		Coords: start,
 		Cost: 0,
 		Heuristic: open.DiagonalDistance(start),
+		Valid: true,
 	})
 
 	closed := make([]openTile, (g.Extent.X * g.Extent.Y))
@@ -146,6 +134,7 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 		}
 
 		closed[g.localIndex(current.Coords)] = current
+
 		for _, neighbour := range g.neighbours(current.Coords, neighbourBuf) {
 			cost := current.Cost + neighbour.MoveCost
 
@@ -175,7 +164,11 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 	reversePath := make([]Vec2i, 0, 10)
 	for current.Coords != start {
 		reversePath = append(reversePath, current.Coords)
-		current = closed[g.localIndex(current.Parent)]
+		next := closed[g.localIndex(current.Parent)]
+		if next == current {
+			panic("BROKEN")
+		}
+		current = next
 	}
 
 	path := make([]Vec2i, 0, len(reversePath))
@@ -188,7 +181,7 @@ func (g *TileGrid) FindPath(startTile, endTile Vec2i) ([]Vec2i, bool) {
 }
 
 func (g *TileGrid) localPosAvailable(coord Vec2i) bool {
-	if coord.X < 0 || coord.Y < 0 {
+	if coord.X < 0 || coord.Y < 0 || coord.X >= g.Extent.X || coord.Y >= g.Extent.Y {
 		return false
 	}
 	idx := g.localIndex(coord)
@@ -198,7 +191,7 @@ func (g *TileGrid) localPosAvailable(coord Vec2i) bool {
 
 	tile := g.Grid[idx]
 
-	return tile.Valid && !tile.Reservation.Blocked()
+	return tile.Valid
 }
 
 type neighbourTile struct {

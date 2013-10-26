@@ -46,6 +46,12 @@ func (b *AvatarBehaviour) TickLogic() {
 		return
 	}
 
+	if b.Move != nil && b.Move.Done() {
+		fmt.Println("Move finished")
+		b.Position.SetShipPosition(b.Move.ToPos)
+		b.Move = nil
+	}
+	
 	if b.Move == nil {
 		b.assignNextMove()
 	}
@@ -56,13 +62,6 @@ func (b *AvatarBehaviour) TickLogic() {
 	}
 
 	b.Move.Tick(b.Position)
-
-	if b.Move.Done() {
-		fmt.Println("Move finished")
-		b.Position.SetShipPosition(b.Move.ToPos)
-		b.getManager().ReleaseReservation(b.Move.FromPos, b.Entity)
-		b.Move = nil
-	}
 }
 
 func (b *AvatarBehaviour) assignNextMove() {
@@ -72,28 +71,11 @@ func (b *AvatarBehaviour) assignNextMove() {
 		return
 	}
 
-	nextTile := b.Action.Path[0]
-	
-	isLast := nextTile == b.Action.Location
-	
-	switch (b.getManager().ReserveTile(nextTile, b.Entity, !isLast)) {
-	case RESERVE_WAIT:
-		b.Move = nil
-		return 
-	case RESERVE_FAIL:
-		fmt.Println("Reservation failed! Abandoning action")
-		b.Move = nil
-		action := b.Action
-		b.Action = nil
-		action.Abandon()
-		b.getManager().AddAction(action)
-		return
-	}
-	
+	nextTile := b.Action.Path[0]	
 	currentTile := b.Position.ShipPosition
-	
 	distance := nextTile.Distance(currentTile)
-	ticks := int(math.Ceil(distance / b.Position.WalkSpeed))
+	ticks := int(math.Floor(distance / b.Position.WalkSpeed))
+
 	fmt.Println("Move:", currentTile, nextTile, distance, ticks)
 	b.Move = NewAvatarMove(currentTile, nextTile, ticks)
 	b.Action.Path = b.Action.Path[1:]

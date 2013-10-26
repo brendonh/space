@@ -81,11 +81,6 @@ func (p *AvatarPosition) AttachTo(e *Entity) {
 }
 
 func (p *AvatarPosition) AttachToShipPosition(e *Entity, pos Vec2i) bool {
-	manager := e.GetComponent("action_manager").(*ActionManager)
-	if manager.ReserveTile(pos, p.Entity, false) != RESERVE_OK {
-		return false
-	}
-
 	p.Physics = e.GetComponent("struct_spacephysics").(*SpacePhysics)
 	p.SetShipPosition(pos)
 	return true

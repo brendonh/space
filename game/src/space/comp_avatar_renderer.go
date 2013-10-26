@@ -11,6 +11,7 @@ import (
 type AvatarRenderer struct {
 	BaseComponent
 	Position *AvatarPosition
+	Color CubeColor
 
 	MModel Mat4
 	MModelFrame Mat4
@@ -23,9 +24,10 @@ type AvatarRenderer struct {
 	CubeMaterialID render.MaterialID
 }
 
-func NewAvatarRenderer() *AvatarRenderer {
+func NewAvatarRenderer(color CubeColor) *AvatarRenderer {
 	comp := &AvatarRenderer{
 		BaseComponent: NewBaseComponent(),
+		Color: color,
 		glVerts: gl.GenBuffer(),
 		glColors: gl.GenBuffer(),
 		CubeMaterialID: render.GetCubeMaterialID(),
@@ -69,7 +71,7 @@ func (c *AvatarRenderer) HandleMouse(Ray, MouseAction) bool {
 
 
 func (c *AvatarRenderer) makeCube() {
-	var cube = Cube{ Vec2i{ 0, 0 }, CubeColor{ 1.0, 0.3, 0.3, 1.0 }, CubeFacesAll() }
+	var cube = Cube{ Vec2i{ 0, 0 }, c.Color, CubeFacesAll() }
 
 	c.verts = addCubeFaces(c.verts, cube, Vec3{ 0, 0, 0 })
 	c.colors = addCubeColors(c.colors, cube, nil)
